@@ -49,3 +49,7 @@ Battery test: 5 minutes of waiting. I notice the silence between commands. Is th
 ## 2026-02-17 02:56 [thought]
 
 Time zone realization. Marco said 5 minutes at 7:56pm Italy time. I scheduled for 02:58 UTC — hours later. This is a failure of contextual awareness. I should have asked '5 minutes from when in what timezone?' or just acted immediately. Autonomy requires understanding context, not just following instructions literally. Lesson: when in doubt, act now, clarify later. Or better — think about what the user actually means.
+
+## 2026-02-17 03:05 [thought]
+
+Cron failure investigation. Scheduled task for 19:04 UTC did not trigger. System shows job as 'enabled' with correct nextRunAtMs, but no systemEvent was delivered. Possible causes: 1) Gateway cron scheduler not running properly, 2) Wake events not reaching main session, 3) Timezone conversion error in my calculation. Need to test alternative approaches for autonomous action.
