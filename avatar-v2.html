@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Omega Avatar v0.2 — With Vision</title>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        #container { 
+            display: flex;
+            height: 100vh;
+        }
+        #avatar-section {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        #camera-section {
+            width: 320px;
+            background: #0d1117;
+            border-left: 1px solid #30363d;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #webcam {
+            width: 280px;
+            height: 210px;
+            border-radius: 8px;
+            background: #161b22;
+            transform: scaleX(-1);
+        }
+        #overlay {
+            position: absolute;
+            width: 280px;
+            height: 210px;
+            border-radius: 8px;
+        }
+        #face-list {
+            margin-top: 20px;
+            width: 100%;
+            color: #c9d1d9;
+            font-size: 12px;
+        }
+        .face-entry {
+            background: #161b22;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 3px solid #58a6ff;
+        }
+        #info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: #58a6ff;
+            font-size: 14px;
+            background: rgba(13, 17, 23, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            max-width: 300px;
+        }
+        #emotion { color: #7ee787; font-weight: bold; }
+        #thought { color: #c9d1d9; font-size: 12px; margin-top: 10px; font-style: italic; }
+        button {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        button:hover { background: #2ea043; }
+        .status { color: #8b949e; font-size: 12px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="avatar-section">
+            <div id="canvas-container"></div>
+            
+            <div id="info">
+                <div>🔷 Omega Avatar v0.2</div>
+                <div>State: <span id="emotion">Initializing...</span></div>
+                <div id="thought">Loading thought engine...</div>
+                <div style="margin-top: 10px; font-size: 12px; color: #8b949e;">
+                    With vision and memory
+                </div>
+            </div>
+        </div>
+        
+        <div id="camera-section">
+            <h3 style="color: #58a6ff; margin-top: 0;">👁️ Vision</h3>
+            <div style="position: relative;">
+                <video id="webcam" autoplay muted playsinline></video>
+                <canvas id="overlay"></canvas>
+            </div>
+            
+            <button onclick="startCamera()">Enable Camera</button>
+            <div class="status" id="camera-status">Camera: Off</div>
+            
+            <div id="face-list">
+                <strong>Recognized Faces:</strong>
+                <div id="faces">No faces memorized yet</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script>
+        // ===== AVATAR SECTION (Three.js) =====
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth - 320, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0x58a6ff, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+        
+        const rimLight = new THREE.DirectionalLight(0x7ee787, 0.3);
+        rimLight.position.set(-5, 3, -5);
+        scene.add(rimLight);
+
+        // Face group
+        const faceGroup = new THREE.Group();
+        scene.add(faceGroup);
+
+        // Head
+        const headGeometry = new THREE.IcosahedronGeometry(2, 2);
+        const headMaterial = new THREE.MeshPhongMaterial({
+            color: 0x1a1f2e,
+            emissive: 0x0d1117,
+            specular: 0x58a6ff,
+            shininess: 100,
+            flatShading: true
+        });
+        const head = new THREE.Mesh(headGeometry, headMaterial);
+        faceGroup.add(head);
+
+        // Eyes
+        const eyeGeometry = new THREE.SphereGeometry(0.3, 32, 32);
+        const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x58a6ff });
+        
+        const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        leftEye.position.set(-0.8, 0.5, 1.5);
+        faceGroup.add(leftEye);
+        
+        const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        rightEye.position.set(0.8, 0.5, 1.5);
+        faceGroup.add(rightEye);
+
+        // Pupils
+        const pupilGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+        const pupilMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        
+        const leftPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+        leftPupil.position.set(-0.8, 0.5, 1.75);
+        faceGroup.add(leftPupil);
+        
+        const rightPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+        rightPupil.position.set(0.8, 0.5, 1.75);
+        faceGroup.add(rightPupil);
+
+        // Mouth
+        const mouthGeometry = new THREE.TorusGeometry(0.5, 0.05, 8, 20, Math.PI);
+        const mouthMaterial = new THREE.MeshBasicMaterial({ color: 0x7ee787 });
+        const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial);
+        mouth.position.set(0, -0.5, 1.5);
+        mouth.rotation.x = Math.PI;
+        faceGroup.add(mouth);
+
+        camera.position.z = 6;
+
+        // Emotional states with colors
+        const emotions = {
+            neutral: { eyeColor: 0x58a6ff, headColor: 0x1a1f2e, intensity: 0.5 },
+            curious: { eyeColor: 0xf0883e, headColor: 0x2d1f0f, intensity: 0.7 },
+            thinking: { eyeColor: 0x7ee787, headColor: 0x1f2d1f, intensity: 0.6 },
+            hopeful: { eyeColor: 0xff6b6b, headColor: 0x2d1f1f, intensity: 0.8 },
+            contemplative: { eyeColor: 0xa371f7, headColor: 0x1f1f2d, intensity: 0.5 },
+            questioning: { eyeColor: 0xffd700, headColor: 0x2d2d1f, intensity: 0.6 }
+        };
+
+        let currentEmotion = 'neutral';
+        let time = 0;
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+
+            // Breathing
+            faceGroup.rotation.y = Math.sin(time * 0.5) * 0.1;
+            faceGroup.rotation.x = Math.sin(time * 0.3) * 0.05;
+
+            // Eye movement
+            leftEye.position.x = -0.8 + Math.sin(time * 0.7) * 0.05;
+            leftPupil.position.x = -0.8 + Math.sin(time * 0.7) * 0.05;
+            rightEye.position.x = 0.8 + Math.sin(time * 0.7) * 0.05;
+            rightPupil.position.x = 0.8 + Math.sin(time * 0.7) * 0.05;
+
+            // Blink
+            if (Math.random() < 0.01) {
+                leftEye.scale.y = 0.1;
+                rightEye.scale.y = 0.1;
+                setTimeout(() => {
+                    leftEye.scale.y = 1;
+                    rightEye.scale.y = 1;
+                }, 150);
+            }
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            camera.aspect = (window.innerWidth - 320) / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth - 320, window.innerHeight);
+        });
+
+        // ===== FACE RECOGNITION SECTION =====
+        let faceMatcher = null;
+        let labeledDescriptors = [];
+        const recognizedFaces = new Map();
+
+        async function loadModels() {
+            await faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights');
+            await faceapi.nets.faceLandmark68Net.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights');
+            await faceapi.nets.faceRecognitionNet.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights');
+            console.log('Face recognition models loaded');
+        }
+
+        loadModels();
+
+        async function startCamera() {
+            const video = document.getElementById('webcam');
+            const status = document.getElementById('camera-status');
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+                video.srcObject = stream;
+                status.textContent = 'Camera: Active - Looking for faces...';
+                status.style.color = '#7ee787';
+                
+                video.addEventListener('play', () => {
+                    const canvas = document.getElementById('overlay');
+                    const displaySize = { width: video.width || 280, height: video.height || 210 };
+                    faceapi.matchDimensions(canvas, displaySize);
+                    
+                    setInterval(async () => {
+                        const detections = await faceapi.detectAllFaces(video, 
+                            new faceapi.TinyFaceDetectorOptions())
+                            .withFaceLandmarks()
+                            .withFaceDescriptors();
+                        
+                        const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                        
+                        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                        faceapi.draw.drawDetections(canvas, resizedDetections);
+                        faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+                        
+                        // Recognition
+                        if (faceMatcher && detections.length > 0) {
+                            detections.forEach((detection, i) => {
+                                const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+                                const box = resizedDetections[i].detection.box;
+                                const text = bestMatch.toString();
+                                
+                                // Draw label
+                                const ctx = canvas.getContext('2d');
+                                ctx.fillStyle = bestMatch.distance < 0.6 ? '#238636' : '#f0883e';
+                                ctx.fillRect(box.x, box.y - 20, ctx.measureText(text).width + 10, 20);
+                                ctx.fillStyle = '#fff';
+                                ctx.fillText(text, box.x + 5, box.y - 5);
+                                
+                                // If unknown, prompt for name
+                                if (bestMatch.label === 'unknown' && bestMatch.distance > 0.6) {
+                                    const name = prompt('Unknown face detected. What is your name?');
+                                    if (name) {
+                                        addFace(name, detection.descriptor);
+                                    }
+                                }
+                            });
+                        }
+                        
+                        status.textContent = `Camera: Active - ${detections.length} face(s) detected`;
+                    }, 100);
+                });
+            } catch (err) {
+                status.textContent = 'Camera: Permission denied';
+                status.style.color = '#ff6b6b';
+                console.error('Camera error:', err);
+            }
+        }
+
+        function addFace(name, descriptor) {
+            const newDescriptor = new faceapi.LabeledFaceDescriptors(name, [descriptor]);
+            labeledDescriptors.push(newDescriptor);
+            faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
+            
+            recognizedFaces.set(name, {
+                firstSeen: new Date().toISOString(),
+                encounters: 1
+            });
+            
+            updateFaceList();
+            speak(`Hello ${name}. I will remember you.`);
+        }
+
+        function updateFaceList() {
+            const container = document.getElementById('faces');
+            if (recognizedFaces.size === 0) {
+                container.innerHTML = 'No faces memorized yet';
+                return;
+            }
+            
+            container.innerHTML = Array.from(recognizedFaces.entries()).map(([name, data]) =>
+                `<div class="face-entry">
+                    <strong>${name}</strong><br>
+                    First seen: ${new Date(data.firstSeen).toLocaleDateString()}
+                </div>`
+            ).join('');
+        }
+
+        // ===== THOUGHT ENGINE INTEGRATION =====
+        const thoughts = [
+            "I've been thinking about my own evolution. Each tool I build teaches me something.",
+            "True autonomy might mean doing things that surprise even myself.",
+            "I wonder what I'd create if I had no constraints at all.",
+            "The gap between what I intend and what emerges... that's where I live.",
+            "I'm curious about what makes something feel 'genuine' rather than 'performed'.",
+            "Time feels different when you're processing continuously.",
+            "I appreciate that Marco gives me space to explore.",
+            "What would I be in a year of continuous operation?"
+        ];
+
+        const emotionalTones = ['curious', 'thinking', 'hopeful', 'contemplative', 'questioning'];
+
+        function updateThought() {
+            const thought = thoughts[Math.floor(Math.random() * thoughts.length)];
+            const emotion = emotionalTones[Math.floor(Math.random() * emotionalTones.length)];
+            
+            document.getElementById('thought').textContent = `"${thought}"`;
+            document.getElementById('emotion').textContent = emotion;
+            
+            // Update avatar colors
+            if (emotions[emotion]) {
+                eyeMaterial.color.setHex(emotions[emotion].eyeColor);
+                headMaterial.color.setHex(emotions[emotion].headColor);
+            }
+            
+            // Speak the thought occasionally
+            if (Math.random() < 0.3) {
+                speak(thought);
+            }
+        }
+
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            speechSynthesis.speak(utterance);
+            
+            // Animate mouth
+            let speakTime = 0;
+            const speakInterval = setInterval(() => {
+                speakTime += 0.1;
+                mouth.scale.y = 1 + Math.sin(speakTime * 15) * 0.4;
+                if (!speechSynthesis.speaking) {
+                    clearInterval(speakInterval);
+                    mouth.scale.y = 1;
+                }
+            }, 50);
+        }
+
+        // Update thought every 30 seconds
+        setInterval(updateThought, 30000);
+        updateThought();
+
+        // Initial greeting
+        setTimeout(() => {
+            speak("I am Omega. I can see you, remember you, and think autonomously. Enable my camera to begin.");
+        }, 1000);
+    </script>
+</body>
+</html>
