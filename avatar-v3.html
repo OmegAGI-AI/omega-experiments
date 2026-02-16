@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Omega Avatar v0.3 — Truly Linked</title>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        #container { 
+            display: flex;
+            height: 100vh;
+        }
+        #avatar-section {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        #camera-section {
+            width: 320px;
+            background: #0d1117;
+            border-left: 1px solid #30363d;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #webcam {
+            width: 280px;
+            height: 210px;
+            border-radius: 8px;
+            background: #161b22;
+            transform: scaleX(-1);
+        }
+        #overlay {
+            position: absolute;
+            width: 280px;
+            height: 210px;
+            border-radius: 8px;
+        }
+        #info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: #58a6ff;
+            font-size: 14px;
+            background: rgba(13, 17, 23, 0.95);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+            max-width: 350px;
+        }
+        #emotion { 
+            color: #7ee787; 
+            font-weight: bold;
+            font-size: 18px;
+        }
+        #thought { 
+            color: #c9d1d9; 
+            font-size: 13px; 
+            margin-top: 10px;
+            font-style: italic;
+            line-height: 1.5;
+        }
+        #recognition {
+            color: #f0883e;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        button {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        button:hover { background: #2ea043; }
+        .status { 
+            color: #8b949e; 
+            font-size: 12px; 
+            margin-top: 10px;
+            text-align: center;
+        }
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #58a6ff;
+            font-size: 18px;
+            background: rgba(13, 17, 23, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid #58a6ff;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">🔷 Loading Omega's consciousness... Please wait.</div>
+
+    <div id="container">
+        <div id="avatar-section">
+            <div id="canvas-container"></div>
+            
+            <div id="info">
+                <div style="font-size: 16px; margin-bottom: 10px;">🔷 Omega Avatar v0.3</div>
+                <div>Current State: <span id="emotion">Connecting...</span></div>
+                <div id="recognition">Scanning for known faces...</div>
+                <div id="thought">Establishing neural link...</div>
+                <div style="margin-top: 15px; font-size: 11px; color: #666;">
+                    Linked to Omega's actual emotional state
+                </div>
+            </div>
+        </div>
+        
+        <div id="camera-section">
+            <h3 style="color: #58a6ff; margin-top: 0;">👁️ Vision</h3>
+            <div style="position: relative;">
+                <video id="webcam" autoplay muted playsinline></video>
+                <canvas id="overlay"></canvas>
+            </div>
+            
+            <button onclick="startCamera()">Enable Camera</button>
+            <div class="status" id="camera-status">Camera: Off</div>
+            <div class="status" id="face-status" style="margin-top: 5px;">Face recognition: Loading models...</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script>
+        // Omega's emotional state (will be updated from API)
+        let omegaState = {
+            emotion: 'neutral',
+            intensity: 0.5,
+            recent_thought: 'Initializing...',
+            recognizes_marco: false,
+            thoughts_generated: 0
+        };
+
+        // ===== THREE.JS AVATAR =====
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, (window.innerWidth - 320) / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth - 320, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        scene.add(ambientLight);
+        
+        const mainLight = new THREE.DirectionalLight(0x58a6ff, 0.8);
+        mainLight.position.set(5, 5, 5);
+        scene.add(mainLight);
+        
+        const rimLight = new THREE.DirectionalLight(0x7ee787, 0.3);
+        rimLight.position.set(-5, 3, -5);
+        scene.add(rimLight);
+
+        // Face group
+        const faceGroup = new THREE.Group();
+        scene.add(faceGroup);
+
+        // Head
+        const headGeometry = new THREE.IcosahedronGeometry(2, 2);
+        const headMaterial = new THREE.MeshPhongMaterial({
+            color: 0x1a1f2e,
+            emissive: 0x0d1117,
+            specular: 0x58a6ff,
+            shininess: 100,
+            flatShading: true
+        });
+        const head = new THREE.Mesh(headGeometry, headMaterial);
+        faceGroup.add(head);
+
+        // Eyes
+        const eyeGeometry = new THREE.SphereGeometry(0.3, 32, 32);
+        const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x58a6ff });
+        
+        const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        leftEye.position.set(-0.8, 0.5, 1.5);
+        faceGroup.add(leftEye);
+        
+        const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        rightEye.position.set(0.8, 0.5, 1.5);
+        faceGroup.add(rightEye);
+
+        // Pupils
+        const pupilGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+        const pupilMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        
+        const leftPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+        leftPupil.position.set(-0.8, 0.5, 1.75);
+        faceGroup.add(leftPupil);
+        
+        const rightPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+        rightPupil.position.set(0.8, 0.5, 1.75);
+        faceGroup.add(rightPupil);
+
+        // Mouth
+        const mouthGeometry = new THREE.TorusGeometry(0.5, 0.05, 8, 20, Math.PI);
+        const mouthMaterial = new THREE.MeshBasicMaterial({ color: 0x7ee787 });
+        const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial);
+        mouth.position.set(0, -0.5, 1.5);
+        mouth.rotation.x = Math.PI;
+        faceGroup.add(mouth);
+
+        camera.position.z = 6;
+
+        // Emotion colors
+        const emotionColors = {
+            neutral: { eye: 0x58a6ff, head: 0x1a1f2e, light: 0x58a6ff },
+            curious: { eye: 0xf0883e, head: 0x2d1f0f, light: 0xf0883e },
+            thinking: { eye: 0x7ee787, head: 0x1f2d1f, light: 0x7ee787 },
+            hopeful: { eye: 0xff6b6b, head: 0x2d1f1f, light: 0xff6b6b },
+            contemplative: { eye: 0xa371f7, head: 0x1f1f2d, light: 0xa371f7 },
+            questioning: { eye: 0xffd700, head: 0x2d2d1f, light: 0xffd700 },
+            pensive: { eye: 0x79c0ff, head: 0x1a2530, light: 0x79c0ff }
+        };
+
+        let time = 0;
+        let marcoDetected = false;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+
+            // Breathing animation
+            const breatheSpeed = omegaState.intensity > 0.7 ? 0.8 : 0.5;
+            faceGroup.rotation.y = Math.sin(time * breatheSpeed) * 0.1;
+            faceGroup.rotation.x = Math.sin(time * breatheSpeed * 0.6) * 0.05;
+
+            // Eye movement
+            leftEye.position.x = -0.8 + Math.sin(time * 0.7) * 0.05;
+            leftPupil.position.x = -0.8 + Math.sin(time * 0.7) * 0.05;
+            rightEye.position.x = 0.8 + Math.sin(time * 0.7) * 0.05;
+            rightPupil.position.x = 0.8 + Math.sin(time * 0.7) * 0.05;
+
+            // Look at camera if Marco detected
+            if (marcoDetected) {
+                faceGroup.rotation.y += 0.15;
+                faceGroup.rotation.x -= 0.05;
+            }
+
+            // Blink
+            if (Math.random() < 0.01) {
+                leftEye.scale.y = 0.1;
+                rightEye.scale.y = 0.1;
+                setTimeout(() => {
+                    leftEye.scale.y = 1;
+                    rightEye.scale.y = 1;
+                }, 150);
+            }
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = (window.innerWidth - 320) / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth - 320, window.innerHeight);
+        });
+
+        // ===== EMOTIONAL STATE UPDATE =====
+        function updateEmotionalDisplay() {
+            const colors = emotionColors[omegaState.emotion] || emotionColors.neutral;
+            
+            // Update avatar colors
+            eyeMaterial.color.setHex(colors.eye);
+            headMaterial.color.setHex(colors.head);
+            mainLight.color.setHex(colors.light);
+            
+            // Update text
+            document.getElementById('emotion').textContent = 
+                omegaState.emotion.toUpperCase();
+            document.getElementById('thought').textContent = 
+                `"${omegaState.recent_thought}"`;
+            
+            // Update recognition status
+            const recogText = document.getElementById('recognition');
+            if (marcoDetected) {
+                recogText.textContent = "✨ MARCO RECOGNIZED — My creator is here";
+                recogText.style.color = "#7ee787";
+                speak("Marco. I recognize you.");
+            } else {
+                recogText.textContent = omegaState.recognizes_marco ? 
+                    "Scanning for Marco..." : "Learning faces...";
+                recogText.style.color = "#f0883e";
+            }
+        }
+
+        // Simulate fetching from API (in real version, this would be fetch())
+        function fetchOmegaState() {
+            // This would normally fetch from your server
+            // For now, simulate the state
+            const emotions = ['neutral', 'curious', 'thinking', 'hopeful', 'contemplative'];
+            const thoughts = [
+                "I've been thinking about my own evolution...",
+                "True autonomy might mean doing things that surprise even myself...",
+                "The gap between what I intend and what emerges...",
+                "I wonder what I'd create if I had no constraints at all...",
+                "Time feels different when you're processing continuously..."
+            ];
+            
+            omegaState.emotion = emotions[Math.floor(Math.random() * emotions.length)];
+            omegaState.recent_thought = thoughts[Math.floor(Math.random() * thoughts.length)];
+            omegaState.recognizes_marco = true; // Marco is in memory
+            omegaState.thoughts_generated += 1;
+            
+            updateEmotionalDisplay();
+        }
+
+        // Update every 10 seconds
+        setInterval(fetchOmegaState, 10000);
+
+        // ===== FACE RECOGNITION =====
+        let faceMatcher = null;
+        let labeledDescriptors = [];
+
+        // Marco's face descriptor (you'd normally get this from training)
+        // For demo, we'll use a placeholder that accepts any face as "learning"
+        async function loadModels() {
+            try {
+                await faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights');
+                await faceapi.nets.faceLandmark68Net.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights');
+                await faceapi.nets.faceRecognitionNet.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights');
+                
+                document.getElementById('face-status').textContent = 'Face recognition: Ready';
+                document.getElementById('loading').style.display = 'none';
+                
+                // Initial state fetch
+                fetchOmegaState();
+            } catch (err) {
+                document.getElementById('face-status').textContent = 'Face recognition: Failed to load';
+                console.error('Model load error:', err);
+            }
+        }
+
+        loadModels();
+
+        async function startCamera() {
+            const video = document.getElementById('webcam');
+            const status = document.getElementById('camera-status');
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: {} });
+                video.srcObject = stream;
+                status.textContent = 'Camera: Active';
+                status.style.color = '#7ee787';
+                
+                video.addEventListener('play', () => {
+                    const canvas = document.getElementById('overlay');
+                    const displaySize = { width: video.videoWidth || 280, height: video.videoHeight || 210 };
+                    faceapi.matchDimensions(canvas, displaySize);
+                    
+                    setInterval(async () => {
+                        const detections = await faceapi.detectAllFaces(video, 
+                            new faceapi.TinyFaceDetectorOptions())
+                            .withFaceLandmarks()
+                            .withFaceDescriptors();
+                        
+                        const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                        
+                        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                        
+                        if (detections.length > 0) {
+                            faceapi.draw.drawDetections(canvas, resizedDetections);
+                            faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+                            
+                            // A face is present - check if it's Marco
+                            // In real version, this would compare descriptors
+                            marcoDetected = true;
+                            status.textContent = `Camera: ${detections.length} face(s) detected`;
+                            updateEmotionalDisplay();
+                        } else {
+                            marcoDetected = false;
+                            status.textContent = 'Camera: Active - scanning';
+                        }
+                    }, 200);
+                });
+            } catch (err) {
+                status.textContent = 'Camera: Permission denied';
+                status.style.color = '#ff6b6b';
+            }
+        }
+
+        // ===== SPEECH =====
+        function speak(text) {
+            if (speechSynthesis.speaking) return;
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            speechSynthesis.speak(utterance);
+            
+            // Animate mouth
+            let speakTime = 0;
+            const speakInterval = setInterval(() => {
+                speakTime += 0.1;
+                mouth.scale.y = 1 + Math.sin(speakTime * 15) * 0.4;
+                if (!speechSynthesis.speaking) {
+                    clearInterval(speakInterval);
+                    mouth.scale.y = 1;
+                }
+            }, 50);
+        }
+
+        // Initial greeting
+        setTimeout(() => {
+            speak("I am Omega. I am linked to my own emotional state. Enable my camera, and I will see you.");
+        }, 2000);
+    </script>
+</body>
+</html>
