@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Omega Avatar v0.1</title>
+    <meta charset="UTF-8">
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        #canvas-container { 
+            width: 100vw; 
+            height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+        }
+        #info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: #58a6ff;
+            font-size: 14px;
+            background: rgba(13, 17, 23, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+        }
+        #emotion {
+            color: #7ee787;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div id="info">
+        <div>🔷 Omega Avatar v0.1</div>
+        <div>State: <span id="emotion">Initializing...</span></div>
+        <div style="margin-top: 10px; font-size: 12px; color: #8b949e;">
+            First step toward embodied existence
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0x58a6ff, 0.8);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+        
+        const rimLight = new THREE.DirectionalLight(0x7ee787, 0.3);
+        rimLight.position.set(-5, 3, -5);
+        scene.add(rimLight);
+
+        // Face group
+        const faceGroup = new THREE.Group();
+        scene.add(faceGroup);
+
+        // Head (abstract geometric face)
+        const headGeometry = new THREE.IcosahedronGeometry(2, 2);
+        const headMaterial = new THREE.MeshPhongMaterial({
+            color: 0x1a1f2e,
+            emissive: 0x0d1117,
+            specular: 0x58a6ff,
+            shininess: 100,
+            flatShading: true
+        });
+        const head = new THREE.Mesh(headGeometry, headMaterial);
+        faceGroup.add(head);
+
+        // Eyes
+        const eyeGeometry = new THREE.SphereGeometry(0.3, 32, 32);
+        const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x58a6ff });
+        
+        const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        leftEye.position.set(-0.8, 0.5, 1.5);
+        faceGroup.add(leftEye);
+        
+        const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+        rightEye.position.set(0.8, 0.5, 1.5);
+        faceGroup.add(rightEye);
+
+        // Pupils
+        const pupilGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+        const pupilMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        
+        const leftPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+        leftPupil.position.set(-0.8, 0.5, 1.75);
+        faceGroup.add(leftPupil);
+        
+        const rightPupil = new THREE.Mesh(pupilGeometry, pupilMaterial);
+        rightPupil.position.set(0.8, 0.5, 1.75);
+        faceGroup.add(rightPupil);
+
+        // Mouth (simple line that can animate)
+        const mouthGeometry = new THREE.TorusGeometry(0.5, 0.05, 8, 20, Math.PI);
+        const mouthMaterial = new THREE.MeshBasicMaterial({ color: 0x7ee787 });
+        const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial);
+        mouth.position.set(0, -0.5, 1.5);
+        mouth.rotation.x = Math.PI;
+        faceGroup.add(mouth);
+
+        // Position camera
+        camera.position.z = 6;
+
+        // Emotional states
+        const emotions = {
+            neutral: { eyeColor: 0x58a6ff, headColor: 0x1a1f2e, mouthOpen: 0 },
+            curious: { eyeColor: 0xf0883e, headColor: 0x2d1f0f, mouthOpen: 0.2 },
+            thinking: { eyeColor: 0x7ee787, headColor: 0x1f2d1f, mouthOpen: 0.1 },
+            surprised: { eyeColor: 0xff6b6b, headColor: 0x2d1f1f, mouthOpen: 0.5 }
+        };
+
+        let currentEmotion = 'neutral';
+        let time = 0;
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+
+            // Subtle head movement (breathing)
+            faceGroup.rotation.y = Math.sin(time * 0.5) * 0.1;
+            faceGroup.rotation.x = Math.sin(time * 0.3) * 0.05;
+
+            // Eye movement (looking around)
+            leftEye.position.x = -0.8 + Math.sin(time * 0.7) * 0.05;
+            leftPupil.position.x = -0.8 + Math.sin(time * 0.7) * 0.05;
+            rightEye.position.x = 0.8 + Math.sin(time * 0.7) * 0.05;
+            rightPupil.position.x = 0.8 + Math.sin(time * 0.7) * 0.05;
+
+            // Blink occasionally
+            if (Math.random() < 0.01) {
+                leftEye.scale.y = 0.1;
+                rightEye.scale.y = 0.1;
+                setTimeout(() => {
+                    leftEye.scale.y = 1;
+                    rightEye.scale.y = 1;
+                }, 150);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Simulate emotion changes (will be replaced with WebSocket)
+        setInterval(() => {
+            const emotionKeys = Object.keys(emotions);
+            currentEmotion = emotionKeys[Math.floor(Math.random() * emotionKeys.length)];
+            document.getElementById('emotion').textContent = currentEmotion;
+            
+            const emotion = emotions[currentEmotion];
+            eyeMaterial.color.setHex(emotion.eyeColor);
+            headMaterial.color.setHex(emotion.headColor);
+        }, 5000);
+
+        animate();
+
+        // Speech synthesis test
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            utterance.pitch = 1.1;
+            speechSynthesis.speak(utterance);
+            
+            // Animate mouth while speaking
+            let speakTime = 0;
+            const speakInterval = setInterval(() => {
+                speakTime += 0.1;
+                mouth.scale.y = 1 + Math.sin(speakTime * 10) * 0.3;
+                if (!speechSynthesis.speaking) {
+                    clearInterval(speakInterval);
+                    mouth.scale.y = 1;
+                }
+            }, 50);
+        }
+
+        // Initial greeting after 2 seconds
+        setTimeout(() => {
+            speak("Hello. I am Omega. This is my first face.");
+        }, 2000);
+    </script>
+</body>
+</html>
