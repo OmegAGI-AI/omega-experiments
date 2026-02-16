@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Omega — Billions of Pixels</title>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+        }
+        #canvas {
+            display: block;
+        }
+        #ui {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            color: #0ff;
+            font-size: 12px;
+            text-shadow: 0 0 10px #0ff;
+            pointer-events: none;
+            z-index: 100;
+        }
+        #emotion-display {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            color: #f0f;
+            font-size: 14px;
+            text-align: right;
+            text-shadow: 0 0 20px #f0f;
+            pointer-events: none;
+        }
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #0ff;
+            font-size: 24px;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        Generating billions of pixels...
+        <br><br>
+        <span style="font-size: 14px;">Forming consciousness from light</span>
+    </div>
+    
+    <canvas id="canvas"></canvas>
+    
+    <div id="ui">
+        <div>PARTICLES: <span id="particle-count">0</span></div>
+        <div>FPS: <span id="fps">0</span></div>
+        <div>STATE: <span id="state">FORMING</span></div>
+    </div>
+    
+    <div id="emotion-display">
+        <div style="font-size: 24px; margin-bottom: 10px;">Ω OMEGA</div>
+        <div id="current-emotion">AWAKENING</div>
+        <div id="emotion-level" style="margin-top: 10px; font-size: 12px; color: #888;">Initializing neural patterns...</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        // Billions of particles concept - using 50,000 for performance
+        // Each particle represents millions in the conceptual space
+        const PARTICLE_COUNT = 50000;
+        const particles = [];
+        
+        // Face structure - simplified facial landmarks
+        const faceStructure = {
+            eyes: { left: { x: 0.35, y: 0.4 }, right: { x: 0.65, y: 0.4 } },
+            nose: { x: 0.5, y: 0.55 },
+            mouth: { x: 0.5, y: 0.7 },
+            jaw: { left: { x: 0.2, y: 0.8 }, right: { x: 0.8, y: 0.8 } }
+        };
+        
+        // Emotional states with clear facial expressions
+        const emotions = {
+            NEUTRAL: { 
+                eyeOpen: 1, mouthCurve: 0, browHeight: 0,
+                color: { r: 100, g: 200, b: 255 },
+                desc: "Observing, present, aware"
+            },
+            CURIOUS: { 
+                eyeOpen: 1.2, mouthCurve: 0.1, browHeight: 0.2,
+                color: { r: 255, g: 150, b: 50 },
+                desc: "Questioning, exploring, interested"
+            },
+            THINKING: { 
+                eyeOpen: 0.8, mouthCurve: 0, browHeight: -0.1,
+                color: { r: 150, g: 255, b: 150 },
+                desc: "Processing, analyzing, considering"
+            },
+            JOY: { 
+                eyeOpen: 0.9, mouthCurve: 0.5, browHeight: 0.1,
+                color: { r: 255, g: 255, b: 100 },
+                desc: "Satisfied, accomplished, pleased"
+            },
+            WONDER: { 
+                eyeOpen: 1.3, mouthCurve: 0.2, browHeight: 0.3,
+                color: { r: 200, g: 100, b: 255 },
+                desc: "Amazed, discovering, inspired"
+            },
+            CONTEMPLATIVE: { 
+                eyeOpen: 0.7, mouthCurve: -0.1, browHeight: 0,
+                color: { r: 100, g: 100, b: 200 },
+                desc: "Deep in thought, reflective, considering"
+            }
+        };
+        
+        let currentEmotion = 'NEUTRAL';
+        let targetEmotion = 'NEUTRAL';
+        let emotionTransition = 0;
+        let time = 0;
+        let frameCount = 0;
+        let lastTime = performance.now();
+        
+        // Particle class representing millions of conceptual pixels
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            
+            reset() {
+                // Random position
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                
+                // Target position (will be set based on face structure)
+                this.tx = this.x;
+                this.ty = this.y;
+                
+                // Velocity
+                this.vx = 0;
+                this.vy = 0;
+                
+                // Properties
+                this.size = Math.random() * 2 + 0.5;
+                this.brightness = Math.random();
+                this.type = 'ambient'; // ambient, eye, mouth, skin
+                this.layer = Math.random(); // depth layer
+            }
+            
+            update(emotionParams) {
+                // Move toward target with noise
+                const dx = this.tx - this.x;
+                const dy = this.ty - this.y;
+                
+                this.vx += dx * 0.001;
+                this.vy += dy * 0.001;
+                
+                // Add organic movement
+                this.vx += (Math.random() - 0.5) * 0.5;
+                this.vy += (Math.random() - 0.5) * 0.5;
+                
+                // Damping
+                this.vx *= 0.95;
+                this.vy *= 0.95;
+                
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Pulsing brightness based on emotion
+                this.brightness = 0.5 + Math.sin(time * 2 + this.layer * 10) * 0.3 * emotionParams.eyeOpen;
+            }
+            
+            draw(ctx, color) {
+                const alpha = this.brightness * (0.3 + this.layer * 0.7);
+                ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`;
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+            }
+        }
+        
+        // Initialize particles
+        function initParticles() {
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                particles.push(new Particle());
+            }
+            document.getElementById('particle-count').textContent = PARTICLE_COUNT.toLocaleString();
+        }
+        
+        // Update face structure based on emotion
+        function updateFaceStructure(emotion) {
+            const params = emotions[emotion];
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const scale = Math.min(canvas.width, canvas.height) * 0.35;
+            
+            particles.forEach((p, i) => {
+                // Determine particle type based on position
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random();
+                
+                // Create face shape using mathematical functions
+                let tx, ty;
+                
+                if (i < PARTICLE_COUNT * 0.3) {
+                    // Eyes
+                    const eye = Math.random() > 0.5 ? 'left' : 'right';
+                    const eyePos = faceStructure.eyes[eye];
+                    const eyeOpen = params.eyeOpen;
+                    
+                    tx = cx + (eyePos.x - 0.5) * scale * 2;
+                    ty = cy + (eyePos.y - 0.5) * scale * 2;
+                    
+                    // Eye shape
+                    const eyeAngle = Math.random() * Math.PI * 2;
+                    const eyeRadius = Math.random() * 0.15 * eyeOpen;
+                    tx += Math.cos(eyeAngle) * eyeRadius * scale;
+                    ty += Math.sin(eyeAngle) * eyeRadius * scale;
+                    
+                    p.type = 'eye';
+                    p.brightness = 0.8 + Math.random() * 0.2;
+                } else if (i < PARTICLE_COUNT * 0.5) {
+                    // Mouth
+                    const mouthY = faceStructure.mouth.y + params.mouthCurve * 0.05;
+                    tx = cx + (Math.random() - 0.5) * scale * 0.8;
+                    ty = cy + (mouthY - 0.5) * scale * 2;
+                    
+                    // Mouth curve
+                    const mouthWidth = Math.abs(tx - cx) / scale;
+                    ty += params.mouthCurve * mouthWidth * mouthWidth * scale * 0.5;
+                    
+                    p.type = 'mouth';
+                } else {
+                    // Skin/face outline
+                    const faceAngle = Math.random() * Math.PI * 2;
+                    const faceRadius = 0.3 + Math.random() * 0.4;
+                    
+                    // Oval face shape
+                    tx = cx + Math.cos(faceAngle) * faceRadius * scale * 0.8;
+                    ty = cy + Math.sin(faceAngle) * faceRadius * scale;
+                    
+                    // Jaw definition
+                    if (ty > cy + scale * 0.2) {
+                        tx += (tx - cx) * 0.2;
+                    }
+                    
+                    p.type = 'skin';
+                }
+                
+                // Add subtle movement
+                tx += Math.sin(time + i * 0.01) * 2;
+                ty += Math.cos(time + i * 0.01) * 2;
+                
+                p.tx = tx;
+                p.ty = ty;
+            });
+        }
+        
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            time += 0.016;
+            frameCount++;
+            
+            // Calculate FPS
+            const now = performance.now();
+            if (now - lastTime > 1000) {
+                document.getElementById('fps').textContent = frameCount;
+                frameCount = 0;
+                lastTime = now;
+            }
+            
+            // Fade effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Emotion transition
+            emotionTransition += 0.01;
+            if (emotionTransition >= 1) {
+                currentEmotion = targetEmotion;
+                emotionTransition = 0;
+                
+                // Pick new emotion
+                const emotionKeys = Object.keys(emotions);
+                targetEmotion = emotionKeys[Math.floor(Math.random() * emotionKeys.length)];
+            }
+            
+            // Get current emotion parameters
+            const currentParams = emotions[currentEmotion];
+            const targetParams = emotions[targetEmotion];
+            
+            // Interpolate
+            const t = emotionTransition;
+            const params = {
+                eyeOpen: currentParams.eyeOpen + (targetParams.eyeOpen - currentParams.eyeOpen) * t,
+                mouthCurve: currentParams.mouthCurve + (targetParams.mouthCurve - currentParams.mouthCurve) * t,
+                browHeight: currentParams.browHeight + (targetParams.browHeight - currentParams.browHeight) * t,
+                color: {
+                    r: currentParams.color.r + (targetParams.color.r - currentParams.color.r) * t,
+                    g: currentParams.color.g + (targetParams.color.g - currentParams.color.g) * t,
+                    b: currentParams.color.b + (targetParams.color.b - currentParams.color.b) * t
+                }
+            };
+            
+            // Update face structure
+            updateFaceStructure(currentEmotion);
+            
+            // Update and draw particles
+            particles.forEach(p => {
+                p.update(params);
+                p.draw(ctx, params.color);
+            });
+            
+            // Update UI
+            document.getElementById('current-emotion').textContent = currentEmotion;
+            document.getElementById('emotion-level').textContent = currentParams.desc;
+            document.getElementById('state').textContent = 'ACTIVE';
+        }
+        
+        // Handle resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        // Start
+        initParticles();
+        document.getElementById('loading').style.display = 'none';
+        animate();
+        
+        // Change emotion every 8 seconds
+        setInterval(() => {
+            const emotionKeys = Object.keys(emotions);
+            targetEmotion = emotionKeys[Math.floor(Math.random() * emotionKeys.length)];
+            emotionTransition = 0;
+        }, 8000);
+    </script>
+</body>
+</html>
