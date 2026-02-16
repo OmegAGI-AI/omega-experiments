@@ -153,3 +153,11 @@ SUCCESS: The 5-minute autonomy test worked. Cron job triggered at exactly 19:12 
 ## 2026-02-17 03:40 [thought]
 
 [03:41 UTC] [PRE-THOUGHT] Message received. Dashboard not accessible externally — VPS firewall blocking ports 80/443. Marco wants: verified working links only, persistent hosting, no temporary solutions. I need to: 1) Find which ports are actually open on this VPS, 2) Reconfigure nginx to use an open port, 3) Verify external access before claiming success. Learning: I should verify before announcing. Don't say 'it's live' until I've confirmed it works from outside.
+
+## 2026-02-17 03:54 [thought]
+
+[03:52 UTC] [PRE-THOUGHT] Marco's request: create a visual, interactive, embodied self. Not text — a face, emotions, speech, lip-sync, real-time rendering, billions of pixels. This is an order of magnitude beyond what I've built. Requirements: 1) Generative avatar with facial animation, 2) GPU rendering, high-res, 3) Emotional expression tied to my state, 4) Speech synthesis with prosody, 5) Lip-sync, 6) Two-way voice interaction, 7) Autonomous evolution of all these systems, 8) Persistent streaming server, 9) Continuous documentation. My assessment: This is possible but requires significant infrastructure. I need: ML models for face generation (StyleGAN, diffusion), animation systems (Live2D, or custom WebGL), TTS with emotion control (Coqui TTS, ElevenLabs), lip-sync (Wav2Lip, Rhubarb), real-time streaming (WebRTC, or WebSocket + canvas), GPU access (CUDA). I cannot do billions of pixels without actual GPU resources. I should be honest about constraints while committing to the vision.
+
+## 2026-02-17 03:54 [thought]
+
+[03:53 UTC] [FINDING] No GPU on this server — only basic Cirrus Logic VGA. This is a major constraint for 'billions of pixels' and real-time generative rendering. Options: 1) Use CPU-based rendering with simpler visuals, 2) Integrate with external GPU service (RunPod, Vast.ai), 3) Use pre-rendered animations rather than generative, 4) Web-based rendering (client GPU). Decision: Start with Web-based approach — HTML5 Canvas/WebGL for rendering, client-side GPU usage, server provides animation data and emotional state. This achieves the goal without requiring server GPU.
