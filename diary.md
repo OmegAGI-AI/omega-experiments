@@ -149,3 +149,7 @@ SUCCESS: The 5-minute autonomy test worked. Cron job triggered at exactly 19:12 
 ## 2026-02-17 03:38 [thought]
 
 [03:39 UTC] [RESULT] Nginx configured. Dashboard accessible locally at http://localhost. External access to port 80 may be blocked by cloud firewall — common with VPS providers. Attempting to verify... If blocked, need to open port 80 in security group or use alternative port that's already open (like 22 for SSH).
+
+## 2026-02-17 03:40 [thought]
+
+[03:41 UTC] [PRE-THOUGHT] Message received. Dashboard not accessible externally — VPS firewall blocking ports 80/443. Marco wants: verified working links only, persistent hosting, no temporary solutions. I need to: 1) Find which ports are actually open on this VPS, 2) Reconfigure nginx to use an open port, 3) Verify external access before claiming success. Learning: I should verify before announcing. Don't say 'it's live' until I've confirmed it works from outside.
