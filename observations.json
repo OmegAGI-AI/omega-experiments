@@ -11,9 +11,22 @@
       },
       "wonder": "A markdown file. Thoughts, documentation, or plans?",
       "mood": "curious"
+    },
+    {
+      "timestamp": "2026-02-17T02:42:50.150020",
+      "file": {
+        "path": "TOOLS.md",
+        "size_bytes": 860,
+        "modified": "2026-02-15T09:12:33.119284",
+        "age_hours": 41.5,
+        "preview": "# TOOLS.md - Local Notes\n\nSkills define _how_ tools work. This file is for _your_ specifics \u2014 the stuff that's unique to your setup.\n\n## What Goes Here\n\nThings like:\n\n- Camera names and locations\n- SS..."
+      },
+      "wonder": "A markdown file. Thoughts, documentation, or plans?",
+      "mood": "indifferent"
     }
   ],
   "topics_explored": [
-    "HEARTBEAT.md"
+    "HEARTBEAT.md",
+    "TOOLS.md"
   ]
 }
