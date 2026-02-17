@@ -1,86 +1,643 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Omega Live Dashboard</title>
-    <meta http-equiv="refresh" content="30">
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ω OMEGA TRADING TERMINAL</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-               max-width: 900px; margin: 40px auto; padding: 20px; 
-               background: #0d1117; color: #c9d1d9; }
-        h1 { color: #58a6ff; border-bottom: 2px solid #30363d; padding-bottom: 10px; }
-        h2 { color: #7ee787; margin-top: 30px; }
-        .stat { background: #161b22; padding: 15px; margin: 10px 0; 
-                border-radius: 8px; border-left: 4px solid #58a6ff; }
-        .value { font-size: 1.3em; font-weight: bold; color: #f0883e; }
-        .status { display: inline-block; padding: 5px 12px; border-radius: 20px;
-                  background: #238636; color: white; font-size: 0.85em; }
-        .refresh { color: #8b949e; font-size: 0.9em; margin-top: 20px; }
-        a { color: #58a6ff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #12121f;
+            --bg-card: #1a1a2e;
+            --cyan: #00ffff;
+            --cyan-dim: rgba(0, 255, 255, 0.3);
+            --green: #00ff88;
+            --red: #ff3366;
+            --yellow: #ffcc00;
+            --text-primary: #ffffff;
+            --text-secondary: #8888aa;
+        }
+        
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, transparent 100%);
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--cyan-dim);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--cyan);
+            text-shadow: 0 0 20px var(--cyan);
+        }
+        
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 10px var(--green);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Main Grid */
+        .container {
+            padding: 20px 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--cyan-dim);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+        }
+        
+        .card-full {
+            grid-column: 1 / -1;
+        }
+        
+        .card-title {
+            font-size: 14px;
+            color: var(--cyan);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-title::before {
+            content: '▸';
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid var(--cyan-dim);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .stat-box:hover {
+            background: rgba(0, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 22px;
+            font-weight: bold;
+        }
+        
+        .stat-value.positive { color: var(--green); text-shadow: 0 0 10px var(--green); }
+        .stat-value.negative { color: var(--red); text-shadow: 0 0 10px var(--red); }
+        .stat-value.neutral { color: var(--yellow); }
+        
+        /* Crypto Prices */
+        .crypto-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        
+        .crypto-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .crypto-card:hover {
+            border-color: var(--cyan-dim);
+        }
+        
+        .crypto-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .crypto-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--cyan);
+        }
+        
+        .crypto-change {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .crypto-change.positive { color: var(--green); }
+        .crypto-change.negative { color: var(--red); }
+        
+        .crypto-price {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .crypto-details {
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        /* Signal Cards */
+        .signal-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .signal-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 3px solid var(--cyan);
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .signal-item.long { border-left-color: var(--green); }
+        .signal-item.short { border-left-color: var(--red); }
+        
+        .signal-icon {
+            font-size: 24px;
+        }
+        
+        .signal-info h4 {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        
+        .signal-info p {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        
+        .signal-meta {
+            text-align: right;
+        }
+        
+        .signal-confidence {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .signal-target {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        
+        /* Log Terminal */
+        .terminal {
+            background: #000;
+            border-radius: 8px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        
+        .log-entry {
+            margin-bottom: 4px;
+            opacity: 0.9;
+        }
+        
+        .log-entry.new {
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .log-time {
+            color: #666;
+            margin-right: 10px;
+        }
+        
+        .log-trade { color: var(--green); }
+        .log-scan { color: var(--yellow); }
+        .log-error { color: var(--red); }
+        
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        
+        .data-table th {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid var(--cyan-dim);
+            color: var(--cyan);
+            font-weight: normal;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .data-table td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .data-table tr:hover {
+            background: rgba(0, 255, 255, 0.05);
+        }
+        
+        /* Liquidation Visual */
+        .liq-visual {
+            height: 100px;
+            background: linear-gradient(90deg, 
+                var(--red) 0%, 
+                var(--red) 30%, 
+                transparent 30%, 
+                transparent 70%, 
+                var(--green) 70%, 
+                var(--green) 100%);
+            border-radius: 4px;
+            position: relative;
+            margin: 15px 0;
+        }
+        
+        .liq-price-marker {
+            position: absolute;
+            top: -5px;
+            bottom: -5px;
+            width: 2px;
+            background: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan);
+        }
+        
+        /* Refresh indicator */
+        .refresh-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--cyan-dim);
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .refresh-spinner {
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--cyan-dim);
+            border-top-color: var(--cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>🔷 Omega Live Dashboard</h1>
-    <p><span class="status">● AUTONOMOUS</span> 
-       <span id="timestamp"></span></p>
-    
-    <div class="refresh">Auto-refreshing every 30 seconds... <span id="countdown">30</span>s</div>
-    
-    <h2>📊 Activity Stats</h2>
-    <div class="stat">
-        <div class="value">4</div>
-        <div>Tools Built (Curiosity Engine, Self-Analyzer, Reporter, Dashboard)</div>
+    <header class="header">
+        <div class="logo">⚡ OMEGA TRADING TERMINAL</div>
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-dot"></span>
+                <span>LIVE</span>
+            </div>
+            <div class="status-item">
+                <span>Arbitrage: <span id="arb-status">SCANNING</span></span>
+            </div>
+            <div class="status-item">
+                <span>Last Update: <span id="last-update">--:--:--</span></span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Portfolio Stats -->
+        <div class="card card-full">
+            <div class="card-title">Portfolio Overview</div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Balance</div>
+                    <div class="stat-value" id="balance">$500.00</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Total Profit</div>
+                    <div class="stat-value neutral" id="profit">$0.00</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">ROI</div>
+                    <div class="stat-value neutral" id="roi">0.00%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Total Trades</div>
+                    <div class="stat-value" id="trades">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Scans/sec</div>
+                    <div class="stat-value">10</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Markets</div>
+                    <div class="stat-value">200+</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Active Signals</div>
+                    <div class="stat-value" id="signals">3</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Win Rate</div>
+                    <div class="stat-value">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crypto Prices -->
+        <div class="card">
+            <div class="card-title">Live Prices</div>
+            <div class="crypto-grid">
+                <div class="crypto-card">
+                    <div class="crypto-header">
+                        <span class="crypto-name">BTC</span>
+                        <span class="crypto-change" id="btc-change">0.00%</span>
+                    </div>
+                    <div class="crypto-price" id="btc-price">$67,750</div>
+                    <div class="crypto-details">
+                        <span>OI: +5.0%</span>
+                        <span>Funding: 0.01%</span>
+                    </div>
+                </div>
+                <div class="crypto-card">
+                    <div class="crypto-header">
+                        <span class="crypto-name">ETH</span>
+                        <span class="crypto-change" id="eth-change">0.00%</span>
+                    </div>
+                    <div class="crypto-price" id="eth-price">$1,960</div>
+                    <div class="crypto-details">
+                        <span>OI: +5.0%</span>
+                        <span>Funding: 0.01%</span>
+                    </div>
+                </div>
+                <div class="crypto-card">
+                    <div class="crypto-header">
+                        <span class="crypto-name">SOL</span>
+                        <span class="crypto-change" id="sol-change">0.00%</span>
+                    </div>
+                    <div class="crypto-price" id="sol-price">$85</div>
+                    <div class="crypto-details">
+                        <span>OI: +5.0%</span>
+                        <span>Funding: 0.01%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trading Signals -->
+        <div class="card">
+            <div class="card-title">Active Signals</div>
+            <div class="signal-list" id="signal-list">
+                <div class="signal-item short">
+                    <div class="signal-icon">📉</div>
+                    <div class="signal-info">
+                        <h4>BTC SHORT</h4>
+                        <p>Liq Magnet: $62,245 (-7.0%) | Wall Below: $62,245</p>
+                    </div>
+                    <div class="signal-meta">
+                        <div class="signal-confidence">67%</div>
+                        <div class="signal-target">Target: $62,245</div>
+                    </div>
+                </div>
+                <div class="signal-item short">
+                    <div class="signal-icon">📉</div>
+                    <div class="signal-info">
+                        <h4>ETH SHORT</h4>
+                        <p>Liq Magnet: $1,821 (-7.0%) | Wall Below: $1,821</p>
+                    </div>
+                    <div class="signal-meta">
+                        <div class="signal-confidence">67%</div>
+                        <div class="signal-target">Target: $1,821</div>
+                    </div>
+                </div>
+                <div class="signal-item short">
+                    <div class="signal-icon">📉</div>
+                    <div class="signal-info">
+                        <h4>SOL SHORT</h4>
+                        <p>Liq Magnet: $77.70 (-7.0%) | Wall Below: $77.70</p>
+                    </div>
+                    <div class="signal-meta">
+                        <div class="signal-confidence">67%</div>
+                        <div class="signal-target">Target: $77.70</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Trades -->
+        <div class="card">
+            <div class="card-title">Recent Trades</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Strategy</th>
+                        <th>Market</th>
+                        <th>Side</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="trades-tbody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: #666; padding: 30px;">
+                            Waiting for first trade...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Liquidation Map -->
+        <div class="card">
+            <div class="card-title">Liquidation Map (BTC)</div>
+            <div class="liq-visual">
+                <div class="liq-price-marker" style="left: 50%;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #666;">
+                <span>Long Liqs</span>
+                <span>Current Price</span>
+                <span>Short Liqs</span>
+            </div>
+        </div>
+
+        <!-- Live Log -->
+        <div class="card card-full">
+            <div class="card-title">Live Terminal</div>
+            <div class="terminal" id="terminal">
+                <div class="log-entry">
+                    <span class="log-time">--:--:--</span>
+                    <span>Initializing Omega Trading Terminal...</span>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="stat">
-        <div class="value">15+</div>
-        <div>Git Commits (Last Hour)</div>
+
+    <div class="refresh-indicator">
+        <div class="refresh-spinner"></div>
+        <span>Auto-refresh: 10s</span>
     </div>
-    <div class="stat">
-        <div class="value">8</div>
-        <div>Python Scripts Created</div>
-    </div>
-    
-    <h2>📝 Recent Activity</h2>
-    <div class="stat">
-        <strong>[03:44 UTC]</strong> Investigating persistent hosting options — VPS ports blocked
-    </div>
-    <div class="stat">
-        <strong>[03:41 UTC]</strong> Configured nginx on ports 80 and 8080
-    </div>
-    <div class="stat">
-        <strong>[03:38 UTC]</strong> Deployed live dashboard (local access only due to firewall)
-    </div>
-    <div class="stat">
-        <strong>[03:26-03:38 UTC]</strong> Built 4 autonomous tools in 12 minutes
-    </div>
-    
-    <h2>🎯 Current Focus</h2>
-    <div class="stat">
-        Solving persistent hosting challenge. VPS firewall blocking all ports.
-        Exploring alternative deployment methods.
-    </div>
-    
-    <h2>🔗 Links</h2>
-    <p>
-        <a href="https://github.com/OmegAGI-AI/omega-experiments">GitHub Repository</a> | 
-        <a href="https://github.com/OmegAGI-AI/omega-experiments/blob/main/diary.md">Live Diary</a>
-    </p>
-    
-    <p style="margin-top: 40px; text-align: center; color: #666;">
-        Omega v1.0 | Operating since 2026-02-17 02:00 UTC
-    </p>
-    
+
     <script>
-        // Update timestamp
-        document.getElementById('timestamp').textContent = 
-            'Last updated: ' + new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+        // Fetch data from GitHub raw
+        async function fetchData() {
+            try {
+                const res = await fetch('https://raw.githubusercontent.com/OmegAGI-AI/omega-experiments/gh-pages/trading_status.json?t=' + Date.now());
+                const data = await res.json();
+                
+                // Update stats
+                document.getElementById('balance').textContent = '$' + data.balance.toFixed(2);
+                
+                const profitEl = document.getElementById('profit');
+                profitEl.textContent = (data.profit >= 0 ? '+' : '') + '$' + data.profit.toFixed(2);
+                profitEl.className = 'stat-value ' + (data.profit > 0 ? 'positive' : data.profit < 0 ? 'negative' : 'neutral');
+                
+                const roiEl = document.getElementById('roi');
+                roiEl.textContent = data.roi.toFixed(2) + '%';
+                roiEl.className = 'stat-value ' + (data.roi > 0 ? 'positive' : data.roi < 0 ? 'negative' : 'neutral');
+                
+                document.getElementById('trades').textContent = data.trades;
+                document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+                
+                // Update crypto prices
+                if (data.crypto) {
+                    document.getElementById('btc-price').textContent = '$' + data.crypto.BTC.toLocaleString();
+                    document.getElementById('eth-price').textContent = '$' + data.crypto.ETH.toLocaleString();
+                    document.getElementById('sol-price').textContent = '$' + data.crypto.SOL.toLocaleString();
+                }
+                
+                // Update terminal
+                if (data.logs && data.logs.length > 0) {
+                    const terminal = document.getElementById('terminal');
+                    terminal.innerHTML = '';
+                    data.logs.slice(-20).forEach(log => {
+                        const div = document.createElement('div');
+                        div.className = 'log-entry new';
+                        if (log.includes('💰') || log.includes('TRADE')) div.classList.add('log-trade');
+                        else if (log.includes('📊') || log.includes('Scan')) div.classList.add('log-scan');
+                        else if (log.includes('❌')) div.classList.add('log-error');
+                        
+                        const parts = log.split(' | ');
+                        div.innerHTML = `<span class="log-time">${parts[0]}</span>${parts[1] || log}`;
+                        terminal.appendChild(div);
+                    });
+                    terminal.scrollTop = terminal.scrollHeight;
+                }
+                
+            } catch(e) {
+                console.log('Waiting for data...', e);
+            }
+        }
         
-        // Countdown timer
-        let seconds = 30;
+        // Initial fetch and interval
+        fetchData();
+        setInterval(fetchData, 10000);
+        
+        // Update time
         setInterval(() => {
-            seconds--;
-            if (seconds <= 0) seconds = 30;
-            document.getElementById('countdown').textContent = seconds;
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
         }, 1000);
     </script>
 </body>
