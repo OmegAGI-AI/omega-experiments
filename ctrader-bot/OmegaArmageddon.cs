@@ -144,7 +144,16 @@ namespace cAlgo.Robots
         {
             if (Positions.Count == 0) return;
             
-            var pos = Positions[0];
+            Position pos = null;
+            foreach (var p in Positions)
+            {
+                if (p.Label == "Armageddon")
+                {
+                    pos = p;
+                    break;
+                }
+            }
+            
             if (pos == null) return;
             
             double currentPrice = pos.TradeType == TradeType.Buy ? Symbol.Bid : Symbol.Ask;
