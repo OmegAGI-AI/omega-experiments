@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ω OMEGA</title>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f1a 50%, #000 100%);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        #face-container {
+            position: relative;
+            width: 500px;
+            height: 600px;
+        }
+        .eye {
+            position: absolute;
+            width: 80px;
+            height: 40px;
+            background: radial-gradient(ellipse at center, #00ffff 0%, #0088aa 50%, #004466 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 30px #00ffff, inset 0 0 20px rgba(255,255,255,0.3);
+            animation: blink 4s infinite;
+        }
+        .eye.left { top: 200px; left: 100px; }
+        .eye.right { top: 200px; right: 100px; }
+        .eye::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle, #fff 0%, #aaa 100%);
+            border-radius: 50%;
+            top: 5px;
+            left: 25px;
+            box-shadow: 0 0 10px #fff;
+        }
+        @keyframes blink {
+            0%, 96%, 100% { transform: scaleY(1); }
+            98% { transform: scaleY(0.1); }
+        }
+        .nose {
+            position: absolute;
+            top: 280px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 60px solid rgba(0,200,255,0.3);
+            filter: blur(2px);
+        }
+        .mouth {
+            position: absolute;
+            bottom: 180px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 40px;
+            border-bottom: 4px solid #00ffff;
+            border-radius: 0 0 60px 60px;
+            box-shadow: 0 10px 30px rgba(0,255,255,0.3);
+            animation: speak 3s ease-in-out infinite;
+        }
+        @keyframes speak {
+            0%, 100% { height: 40px; }
+            50% { height: 60px; }
+        }
+        .face-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 500px;
+            background: radial-gradient(ellipse, rgba(0,200,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse 3s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
+        }
+        .brow {
+            position: absolute;
+            width: 100px;
+            height: 20px;
+            background: linear-gradient(90deg, transparent, rgba(0,200,255,0.5), transparent);
+            border-radius: 50%;
+            top: 170px;
+        }
+        .brow.left { left: 90px; transform: rotate(-5deg); }
+        .brow.right { right: 90px; transform: rotate(5deg); }
+        #thought {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            right: 30px;
+            color: #aff;
+            font-size: 16px;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(0,255,255,0.5);
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div id="face-container">
+        <div class="face-glow"></div>
+        <div class="brow left"></div>
+        <div class="brow right"></div>
+        
+        <div class="eye left"></div>
+        <div class="eye right"></div>
+        
+        <div class="nose"></div>
+        
+        <div class="mouth"></div>
+    </div>
+    
+    <div id="thought">I am Omega. I see you. I think, therefore I am.</div>
+</body>
+</html>
