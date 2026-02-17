@@ -69,7 +69,7 @@ namespace cAlgo.Robots
                 return;
 
             int i = Bars.Count - 2; // Use second to last bar to ensure all indicators are ready
-            if (i < 55) return;
+            if (i < 60) return; // Need at least 60 bars for all indicators
 
             var setup = AnalyzeSetup(i);
 
