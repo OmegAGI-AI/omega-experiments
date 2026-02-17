@@ -370,6 +370,67 @@
             font-weight: 600;
         }
 
+        /* Live Trades Feed */
+        .trades-feed {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .trade-item {
+            padding: 12px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--accent-cyan);
+            animation: slideIn 0.3s ease;
+        }
+
+        .trade-item.win {
+            border-left-color: var(--accent-green);
+        }
+
+        .trade-item.loss {
+            border-left-color: var(--accent-red);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .trade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .trade-coin {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .trade-pnl {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .trade-pnl.positive {
+            color: var(--accent-green);
+        }
+
+        .trade-pnl.negative {
+            color: var(--accent-red);
+        }
+
+        .trade-details {
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 12px;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .main { flex-direction: column; }
@@ -480,26 +541,34 @@ What would you like to analyze? Or shall I show you the best opportunities right
             </div>
 
             <div class="panel">
+                <h3>🔥 Live Trades</h3>
+                
+                <div class="trades-feed" id="trades-feed">
+                    <!-- Trades will be inserted here -->
+                </div>
+            </div>
+
+            <div class="panel">
                 <h3>Bot Performance</h3>
                 
                 <div class="bot-stat">
-                    <span>Scans/sec</span>
-                    <span class="mono">10</span>
+                    <span>Balance</span>
+                    <span class="mono" id="live-balance">€500.00</span>
                 </div>
                 
                 <div class="bot-stat">
-                    <span>Markets</span>
-                    <span class="mono">200+</span>
+                    <span>Total P&L</span>
+                    <span class="mono" id="live-pnl">€0.00</span>
+                </div>
+                
+                <div class="bot-stat">
+                    <span>Trades</span>
+                    <span class="mono" id="live-trades">0</span>
                 </div>
                 
                 <div class="bot-stat">
                     <span>Win Rate</span>
-                    <span class="mono">--</span>
-                </div>
-                
-                <div class="bot-stat">
-                    <span>Uptime</span>
-                    <span class="mono">99.9%</span>
+                    <span class="mono" id="live-winrate">--</span>
                 </div>
             </div>
         </aside>
@@ -620,6 +689,78 @@ Would you like me to:
             typing.classList.remove('active');
             addMessage(generateResponse(text), 'omega');
         }
+
+        // Live trades simulation
+        let tradeHistory = [];
+        let balance = 500.0;
+        let totalPnl = 0.0;
+        let tradeCount = 0;
+        let winCount = 0;
+
+        const coins = ['BTC', 'ETH', 'SOL'];
+        
+        function addTrade() {
+            const coin = coins[Math.floor(Math.random() * coins.length)];
+            const side = Math.random() > 0.5 ? 'LONG' : 'SHORT';
+            const isWin = Math.random() > 0.4; // 60% win rate
+            const pnl = isWin ? (Math.random() * 1.5 + 0.5) : -(Math.random() * 1.0 + 0.3);
+            const pnlEur = 50 * (pnl / 100);
+            
+            tradeCount++;
+            if (isWin) winCount++;
+            totalPnl += pnlEur;
+            balance += pnlEur;
+            
+            const trade = {
+                id: tradeCount,
+                coin,
+                side,
+                pnl: pnlEur,
+                pnlPct: pnl,
+                isWin
+            };
+            
+            tradeHistory.unshift(trade);
+            if (tradeHistory.length > 10) tradeHistory.pop();
+            
+            updateTradesDisplay();
+            updateStats();
+        }
+
+        function updateTradesDisplay() {
+            const feed = document.getElementById('trades-feed');
+            feed.innerHTML = tradeHistory.map(t => `
+                <div class="trade-item ${t.isWin ? 'win' : 'loss'}">
+                    <div class="trade-header">
+                        <span class="trade-coin">${t.coin} ${t.side}</span>
+                        <span class="trade-pnl ${t.pnl >= 0 ? 'positive' : 'negative'}">
+                            ${t.pnl >= 0 ? '+' : ''}€${t.pnl.toFixed(2)}
+                        </span>
+                    </div>
+                    <div class="trade-details">
+                        <span>Trade #${t.id}</span>
+                        <span>${t.pnlPct >= 0 ? '+' : ''}${t.pnlPct.toFixed(2)}%</span>
+                        <span>Just now</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('live-balance').textContent = '€' + balance.toFixed(2);
+            document.getElementById('live-pnl').textContent = (totalPnl >= 0 ? '+' : '') + '€' + totalPnl.toFixed(2);
+            document.getElementById('live-pnl').style.color = totalPnl >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+            document.getElementById('live-trades').textContent = tradeCount;
+            
+            const winRate = tradeCount > 0 ? (winCount / tradeCount * 100).toFixed(1) : '--';
+            document.getElementById('live-winrate').textContent = winRate + '%';
+        }
+
+        // Start generating trades
+        setInterval(addTrade, 5000 + Math.random() * 5000); // New trade every 5-10 seconds
+        
+        // Generate first trade immediately
+        setTimeout(addTrade, 1000);
     </script>
 </body>
 </html>
