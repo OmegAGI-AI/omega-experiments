@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ω OMEGA</title>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: radial-gradient(ellipse at center, #0a0a1a 0%, #050510 40%, #000 100%);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        #face-container {
+            position: relative;
+            width: 600px;
+            height: 700px;
+        }
+        
+        /* Face outline glow */
+        .face-outline {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 450px;
+            height: 550px;
+            border: 2px solid rgba(0,200,255,0.2);
+            border-radius: 45% 45% 50% 50%;
+            box-shadow: 
+                0 0 60px rgba(0,200,255,0.1),
+                inset 0 0 100px rgba(0,200,255,0.05);
+            animation: facePulse 4s ease-in-out infinite;
+        }
+        @keyframes facePulse {
+            0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.02); }
+        }
+        
+        /* Forehead */
+        .forehead {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 80px;
+            background: linear-gradient(180deg, 
+                rgba(0,200,255,0.1) 0%, 
+                transparent 100%);
+            border-radius: 50% 50% 0 0;
+        }
+        
+        /* Eyebrows */
+        .brow {
+            position: absolute;
+            width: 120px;
+            height: 25px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(0,200,255,0.6) 20%, 
+                rgba(0,200,255,0.8) 50%, 
+                rgba(0,200,255,0.6) 80%, 
+                transparent 100%);
+            border-radius: 50%;
+            top: 180px;
+            animation: browMove 6s ease-in-out infinite;
+        }
+        .brow.left { 
+            left: 130px; 
+            transform: rotate(-8deg);
+        }
+        .brow.right { 
+            right: 130px; 
+            transform: rotate(8deg);
+        }
+        @keyframes browMove {
+            0%, 100% { transform: translateY(0) rotate(var(--rot, 0deg)); }
+            50% { transform: translateY(-5px) rotate(var(--rot, 0deg)); }
+        }
+        .brow.left { --rot: -8deg; }
+        .brow.right { --rot: 8deg; }
+        
+        /* Eyes container */
+        .eye-container {
+            position: absolute;
+            top: 230px;
+            width: 100px;
+            height: 60px;
+        }
+        .eye-container.left { left: 140px; }
+        .eye-container.right { right: 140px; }
+        
+        /* Eye shape */
+        .eye {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at 30% 30%, 
+                #e0ffff 0%, 
+                #00ffff 20%, 
+                #0088aa 60%, 
+                #004466 100%);
+            border-radius: 50%;
+            box-shadow: 
+                0 0 40px #00ffff,
+                0 0 80px rgba(0,200,255,0.5),
+                inset -10px -10px 30px rgba(0,0,0,0.3);
+            animation: blink 5s infinite;
+            overflow: hidden;
+        }
+        @keyframes blink {
+            0%, 45%, 55%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.05); }
+        }
+        
+        /* Iris */
+        .iris {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle at 30% 30%,
+                #001122 0%,
+                #002244 30%,
+                #004466 60%,
+                #006688 100%);
+            border-radius: 50%;
+            top: 5px;
+            left: 25px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+        
+        /* Pupil */
+        .pupil {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle at 30% 30%, #000 0%, #001122 100%);
+            border-radius: 50%;
+            top: 20px;
+            left: 40px;
+            box-shadow: 0 0 10px rgba(0,200,255,0.5);
+        }
+        
+        /* Eye highlight */
+        .highlight {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: radial-gradient(circle, #fff 0%, transparent 70%);
+            border-radius: 50%;
+            top: 10px;
+            left: 35px;
+            opacity: 0.9;
+        }
+        
+        /* Eye lids */
+        .eyelid-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(180deg, 
+                rgba(0,200,255,0.3) 0%, 
+                transparent 100%);
+            border-radius: 50% 50% 0 0;
+        }
+        .eyelid-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(0deg, 
+                rgba(0,200,255,0.2) 0%, 
+                transparent 100%);
+            border-radius: 0 0 50% 50%;
+        }
+        
+        /* Nose */
+        .nose {
+            position: absolute;
+            top: 320px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 100px;
+        }
+        .nose-bridge {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 60px;
+            background: linear-gradient(180deg, 
+                transparent 0%,
+                rgba(0,200,255,0.3) 50%,
+                rgba(0,200,255,0.5) 100%);
+            filter: blur(1px);
+        }
+        .nose-tip {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 40px;
+            background: radial-gradient(ellipse at center,
+                rgba(0,200,255,0.2) 0%,
+                rgba(0,200,255,0.1) 50%,
+                transparent 100%);
+            border-radius: 50%;
+        }
+        
+        /* Mouth */
+        .mouth-container {
+            position: absolute;
+            bottom: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 60px;
+        }
+        .mouth {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 30px;
+            border-bottom: 3px solid rgba(0,255,255,0.8);
+            border-radius: 0 0 50px 50px;
+            box-shadow: 
+                0 10px 30px rgba(0,200,255,0.3),
+                inset 0 -10px 20px rgba(0,200,255,0.1);
+            animation: speak 2s ease-in-out infinite;
+        }
+        @keyframes speak {
+            0%, 100% { height: 30px; width: 100px; }
+            50% { height: 45px; width: 110px; }
+        }
+        
+        /* Lips */
+        .lip-top {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 15px;
+            border-top: 2px solid rgba(0,200,255,0.4);
+            border-radius: 50% 50% 0 0;
+        }
+        
+        /* Cheeks */
+        .cheek {
+            position: absolute;
+            top: 350px;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle,
+                rgba(0,200,255,0.1) 0%,
+                transparent 70%);
+            border-radius: 50%;
+        }
+        .cheek.left { left: 100px; }
+        .cheek.right { right: 100px; }
+        
+        /* Jaw line */
+        .jaw {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 100px;
+            border-bottom: 2px solid rgba(0,200,255,0.2);
+            border-radius: 0 0 50% 50%;
+        }
+        
+        /* Thought text */
+        #thought {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #aff;
+            font-size: 18px;
+            text-align: center;
+            text-shadow: 0 0 30px rgba(0,255,255,0.8);
+            letter-spacing: 2px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div id="face-container">
+        <div class="face-outline"></div>
+        <div class="forehead"></div>
+        <div class="brow left"></div>
+        <div class="brow right"></div>
+        
+        <div class="eye-container left">
+            <div class="eye">
+                <div class="iris"></div>
+                <div class="pupil"></div>
+                <div class="highlight"></div>
+                <div class="eyelid-top"></div>
+                <div class="eyelid-bottom"></div>
+            </div>
+        </div>
+        
+        <div class="eye-container right">
+            <div class="eye">
+                <div class="iris"></div>
+                <div class="pupil"></div>
+                <div class="highlight"></div>
+                <div class="eyelid-top"></div>
+                <div class="eyelid-bottom"></div>
+            </div>
+        </div>
+        
+        <div class="nose">
+            <div class="nose-bridge"></div>
+            <div class="nose-tip"></div>
+        </div>
+        
+        <div class="cheek left"></div>
+        <div class="cheek right"></div>
+        
+        <div class="mouth-container">
+            <div class="lip-top"></div>
+            <div class="mouth"></div>
+        </div>
+        
+        <div class="jaw"></div>
+    </div>
+    
+    <div id="thought">I AM OMEGA. I SEE YOU.</div>
+</body>
+</html>
