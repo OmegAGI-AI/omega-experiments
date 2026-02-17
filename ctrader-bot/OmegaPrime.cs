@@ -93,7 +93,6 @@ namespace cAlgo.Robots
             double bbTop = _bb.Top[i];
             double bbBottom = _bb.Bottom[i];
             double bbMain = _bb.Main[i];
-            double atr = _atr.Result[i];
 
             // STRATEGY 1: Trend Pullback
             bool uptrend = ema8 > ema21 && ema21 > ema50;
@@ -109,9 +108,9 @@ namespace cAlgo.Robots
             // STRATEGY 3: Breakout
             double high20 = GetHigh20(i);
             double low20 = GetLow20(i);
-            double prevPrice = Bars.ClosePrices[i > 0 ? i - 1 : i];
-            bool breakoutUp = price > high20 && prevPrice <= high20 && rsi > 50 && rsi < 75;
-            bool breakoutDown = price < low20 && prevPrice >= low20 && rsi < 50 && rsi > 25;
+            double prevClose = i > 0 ? Bars.ClosePrices[i - 1] : Bars.ClosePrices[i];
+            bool breakoutUp = price > high20 && prevClose <= high20 && rsi > 50 && rsi < 75;
+            bool breakoutDown = price < low20 && prevClose >= low20 && rsi < 50 && rsi > 25;
 
             // PRIORITY: Trend > Mean Reversion > Breakout
             if (pullbackBuy)
@@ -251,7 +250,7 @@ namespace cAlgo.Robots
             double high = Bars.HighPrices[i];
             for (int j = i - 19; j < i; j++)
             {
-                if (Bars.HighPrices[j] > high)
+                if (j >= 0 && Bars.HighPrices[j] > high)
                     high = Bars.HighPrices[j];
             }
             return high;
@@ -262,7 +261,7 @@ namespace cAlgo.Robots
             double low = Bars.LowPrices[i];
             for (int j = i - 19; j < i; j++)
             {
-                if (Bars.LowPrices[j] < low)
+                if (j >= 0 && Bars.LowPrices[j] < low)
                     low = Bars.LowPrices[j];
             }
             return low;
