@@ -89,7 +89,7 @@ namespace cAlgo.Robots
             double ema50 = _ema50.Result[i];
             double rsi = _rsi.Result[i];
             double macd = _macd.Histogram[i];
-            double macdPrev = _macd.Histogram[i - 1];
+            double macdPrev = i > 0 ? _macd.Histogram[i - 1] : _macd.Histogram[i];
             double bbTop = _bb.Top[i];
             double bbBottom = _bb.Bottom[i];
             double bbMain = _bb.Main[i];
