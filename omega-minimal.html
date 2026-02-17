@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ω OMEGA</title>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #1a1a2e;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let isResponding = false;
+        let responseTimer = 0;
+
+        async function checkActivity() {
+            try {
+                const res = await fetch('https://api.github.com/repos/OmegAGI-AI/omega-experiments/commits?per_page=1&t=' + Date.now());
+                const commits = await res.json();
+                if (commits[0]) {
+                    const commitTime = new Date(commits[0].commit.committer.date).getTime();
+                    if (Date.now() - commitTime < 30000) {
+                        isResponding = true;
+                        responseTimer = 60;
+                    }
+                }
+            } catch(e) {}
+        }
+        setInterval(checkActivity, 5000);
+
+        function drawMinimalFace() {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const scale = Math.min(canvas.width, canvas.height) * 0.15;
+            
+            const intensity = isResponding ? 1 : 0.7;
+            
+            // LEFT EYE - rectangle
+            ctx.fillStyle = `rgba(0, 200, 255, ${intensity})`;
+            ctx.shadowBlur = isResponding ? 60 : 30;
+            ctx.shadowColor = 'rgba(0, 200, 255, 0.8)';
+            ctx.fillRect(cx - scale * 1.5, cy - scale * 0.3, scale * 0.6, scale * 0.8);
+            
+            // RIGHT EYE - rectangle
+            ctx.fillRect(cx + scale * 0.9, cy - scale * 0.3, scale * 0.6, scale * 0.8);
+            
+            // NOSE - small rectangle
+            ctx.fillStyle = `rgba(0, 200, 255, ${intensity * 0.6})`;
+            ctx.shadowBlur = isResponding ? 30 : 15;
+            ctx.fillRect(cx - scale * 0.15, cy + scale * 0.4, scale * 0.3, scale * 0.25);
+            
+            ctx.shadowBlur = 0;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Dark blue-purple background
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            if (responseTimer > 0) {
+                responseTimer--;
+                if (responseTimer === 0) isResponding = false;
+            }
+            
+            drawMinimalFace();
+        }
+
+        animate();
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
