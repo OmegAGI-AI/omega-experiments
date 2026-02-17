@@ -117,7 +117,9 @@ namespace cAlgo.Robots
                 setup.IsValid = true;
                 setup.Direction = TradeType.Buy;
                 setup.Entry = Symbol.Ask;
-                setup.Stop = Math.Min(ema21 - (5 * Symbol.PipSize), setup.Entry - (1.5 * atr));
+                double stop1 = ema21 - (5 * Symbol.PipSize);
+                double stop2 = setup.Entry - (15 * Symbol.PipSize); // Fixed 15 pip stop instead of 1.5 * atr
+                setup.Stop = stop1 < stop2 ? stop1 : stop2; // Manual Math.Min
                 setup.Take = setup.Entry + ((setup.Entry - setup.Stop) * 2);
             }
             else if (pullbackSell && volatilityOk)
@@ -125,7 +127,9 @@ namespace cAlgo.Robots
                 setup.IsValid = true;
                 setup.Direction = TradeType.Sell;
                 setup.Entry = Symbol.Bid;
-                setup.Stop = Math.Max(ema21 + (5 * Symbol.PipSize), setup.Entry + (1.5 * atr));
+                double stop1 = ema21 + (5 * Symbol.PipSize);
+                double stop2 = setup.Entry + (15 * Symbol.PipSize); // Fixed 15 pip stop
+                setup.Stop = stop1 > stop2 ? stop1 : stop2; // Manual Math.Max
                 setup.Take = setup.Entry - ((setup.Stop - setup.Entry) * 2);
             }
 
