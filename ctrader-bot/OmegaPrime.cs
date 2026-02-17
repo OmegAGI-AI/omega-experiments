@@ -68,7 +68,7 @@ namespace cAlgo.Robots
             if (!CanTrade())
                 return;
 
-            int i = Bars.Count - 1;
+            int i = Bars.Count - 2; // Use second to last bar to ensure all indicators are ready
             if (i < 55) return;
 
             var setup = AnalyzeSetup(i);
