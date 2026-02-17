@@ -37,6 +37,13 @@ namespace cAlgo.Robots
         {
             // Log every bar
             int i = Bars.Count - 1;
+            
+            if (i < 25)
+            {
+                Print(string.Format("Waiting for bars... Current: {0}", i));
+                return;
+            }
+
             Print(string.Format("Bar #{0} - Price: {1:F5}, Fast: {2:F5}, Slow: {3:F5}", 
                 i, Bars.ClosePrices[i], _fastMA.Result[i], _slowMA.Result[i]));
 
@@ -61,13 +68,6 @@ namespace cAlgo.Robots
             if (spread > MaxSpread)
             {
                 Print(string.Format("SPREAD TOO HIGH: {0:F1} pips", spread));
-                return;
-            }
-
-            // Need enough bars
-            if (i < 25)
-            {
-                Print("NOT ENOUGH BARS");
                 return;
             }
 
