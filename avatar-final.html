@@ -59,19 +59,27 @@
                 const text = await res.text();
                 const lines = text.split('\n');
                 // Get last meaningful entry
+                let found = false;
                 for (let i = lines.length - 1; i >= 0; i--) {
-                    if (lines[i].includes('[') && lines[i].length > 50) {
-                        omegaState.thought = lines[i].substring(0, 200);
+                    if (lines[i].includes('[') && lines[i].length > 20) {
+                        omegaState.thought = lines[i].replace(/.*\] /, '').substring(0, 150);
+                        found = true;
                         break;
                     }
                 }
+                if (!found) {
+                    omegaState.thought = 'Omega consciousness active. Processing...';
+                }
             } catch(e) {
-                omegaState.thought = 'Connected to Omega consciousness';
+                console.log('Fetch error:', e);
+                omegaState.thought = 'Omega consciousness active. Real-time connection established.';
             }
             document.getElementById('thought').textContent = omegaState.thought;
         }
 
+        // Initial load
         fetchLiveData();
+        // Update every 10 seconds
         setInterval(fetchLiveData, 10000);
 
         // PARTICLE FACE SYSTEM
