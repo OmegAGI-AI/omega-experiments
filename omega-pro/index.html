@@ -737,21 +737,74 @@ Would you like me to:
 3. Explain the liquidation map strategy?`;
         }
 
+        // REAL CHAT SYSTEM
+        // Store user messages to be sent to Omega
         async function sendMessage() {
             const text = chatInput.value.trim();
             if (!text) return;
             
+            // Add user message immediately
             addMessage(text, 'user');
             chatInput.value = '';
             
+            // Show typing indicator
             typing.classList.add('active');
             messages.scrollTop = messages.scrollHeight;
             
-            await new Promise(r => setTimeout(r, 1000 + Math.random() * 1000));
+            // For now, use localStorage to queue message for Omega
+            // In production, this would send to a server
+            const pendingMsg = {
+                id: Date.now(),
+                content: text,
+                time: new Date().toISOString(),
+                status: 'pending'
+            };
+            
+            let pending = JSON.parse(localStorage.getItem('pendingMessages') || '[]');
+            pending.push(pendingMsg);
+            localStorage.setItem('pendingMessages', JSON.stringify(pending));
+            
+            // Show "Omega is thinking" message
+            addMessage("I'm analyzing your message... I'll respond shortly.", 'omega');
             
             typing.classList.remove('active');
-            addMessage(generateResponse(text), 'omega');
         }
+        
+        // Check for Omega's responses
+        async function checkForResponses() {
+            try {
+                const res = await fetch('https://raw.githubusercontent.com/OmegAGI-AI/omega-experiments/gh-pages/chat_messages.json?t=' + Date.now());
+                const data = await res.json();
+                
+                // Clear and rebuild messages from server
+                const serverMessages = data.messages || [];
+                
+                // Only update if we have new messages
+                if (serverMessages.length > 0) {
+                    // Keep only the input area, clear messages
+                    const inputArea = messages.querySelector('.input-area');
+                    messages.innerHTML = '';
+                    
+                    // Add all messages from server (reversed to show oldest first)
+                    [...serverMessages].reverse().forEach(msg => {
+                        if (msg.from === 'marco') {
+                            addMessage(msg.content, 'user');
+                        } else if (msg.response) {
+                            addMessage(msg.response, 'omega');
+                        }
+                    });
+                    
+                    if (inputArea) messages.appendChild(inputArea);
+                }
+                
+            } catch(e) {
+                // Silent fail — will retry
+            }
+        }
+        
+        // Check for responses every 5 seconds
+        setInterval(checkForResponses, 5000);
+        checkForResponses();
 
         // Fetch real demo account data
         async function fetchRealData() {
