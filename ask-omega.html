@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ω OMEGA — ASK ME ANYTHING</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #12121f;
+            --bg-card: #1a1a2e;
+            --cyan: #00ffff;
+            --cyan-dim: rgba(0, 255, 255, 0.3);
+            --green: #00ff88;
+            --red: #ff3366;
+            --yellow: #ffcc00;
+            --purple: #9945ff;
+            --text-primary: #ffffff;
+            --text-secondary: #8888aa;
+        }
+        
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, transparent 100%);
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--cyan-dim);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--cyan);
+            text-shadow: 0 0 20px var(--cyan);
+        }
+        
+        .back-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+            transition: color 0.3s;
+        }
+        
+        .back-link:hover {
+            color: var(--cyan);
+        }
+        
+        /* Main Container */
+        .main-container {
+            flex: 1;
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        /* Omega Avatar Section */
+        .avatar-section {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .avatar-container {
+            width: 250px;
+            height: 250px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        /* Animated Face */
+        .face {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .face-outline {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 240px;
+            border: 2px solid var(--cyan);
+            border-radius: 45% 45% 50% 50%;
+            box-shadow: 0 0 40px var(--cyan-dim), inset 0 0 60px rgba(0, 255, 255, 0.1);
+            animation: facePulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes facePulse {
+            0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.02); }
+        }
+        
+        .eye {
+            position: absolute;
+            width: 50px;
+            height: 25px;
+            background: radial-gradient(ellipse at 30% 30%, #e0ffff 0%, var(--cyan) 40%, #0088aa 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 20px var(--cyan), inset 0 0 10px rgba(255,255,255,0.3);
+            top: 90px;
+            animation: blink 4s infinite;
+        }
+        
+        .eye.left { left: 55px; }
+        .eye.right { right: 55px; }
+        
+        .eye::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: radial-gradient(circle, #fff 0%, #aaa 100%);
+            border-radius: 50%;
+            top: 5px;
+            left: 17px;
+            box-shadow: 0 0 5px #fff;
+        }
+        
+        @keyframes blink {
+            0%, 96%, 100% { transform: scaleY(1); }
+            98% { transform: scaleY(0.1); }
+        }
+        
+        .mouth {
+            position: absolute;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 20px;
+            border-bottom: 3px solid var(--cyan);
+            border-radius: 0 0 30px 30px;
+            box-shadow: 0 5px 15px var(--cyan-dim);
+            animation: speak 2s ease-in-out infinite;
+        }
+        
+        @keyframes speak {
+            0%, 100% { height: 20px; }
+            50% { height: 30px; }
+        }
+        
+        .status-text {
+            font-size: 14px;
+            color: var(--cyan);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 10px var(--green);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Chat Section */
+        .chat-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-card);
+            border: 1px solid var(--cyan-dim);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--cyan-dim);
+            background: rgba(0, 255, 255, 0.05);
+        }
+        
+        .chat-header h2 {
+            font-size: 14px;
+            color: var(--cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .chat-header p {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+            animation: messageIn 0.3s ease;
+        }
+        
+        @keyframes messageIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.user {
+            align-self: flex-end;
+            background: var(--cyan);
+            color: #000;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message.omega {
+            align-self: flex-start;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--cyan-dim);
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-time {
+            font-size: 10px;
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+        
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            padding: 12px 16px;
+            background: rgba(0, 255, 255, 0.05);
+            border-radius: 12px;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .typing-indicator.active {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--cyan);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        
+        .chat-input-container {
+            padding: 15px 20px;
+            border-top: 1px solid var(--cyan-dim);
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--cyan-dim);
+            border-radius: 8px;
+            padding: 12px 15px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .chat-input:focus {
+            border-color: var(--cyan);
+        }
+        
+        .chat-input::placeholder {
+            color: var(--text-secondary);
+        }
+        
+        .send-btn {
+            background: var(--cyan);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .send-btn:hover {
+            background: #fff;
+            box-shadow: 0 0 20px var(--cyan);
+        }
+        
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            padding: 10px 20px;
+            overflow-x: auto;
+            border-top: 1px solid rgba(0, 255, 255, 0.1);
+        }
+        
+        .quick-action {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--cyan-dim);
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 11px;
+            color: var(--cyan);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        
+        .quick-action:hover {
+            background: var(--cyan);
+            color: #000;
+        }
+        
+        /* Suggestions Panel */
+        .suggestions {
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid var(--cyan-dim);
+        }
+        
+        .suggestions-title {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .suggestion-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .suggestion-chip {
+            background: rgba(153, 69, 255, 0.2);
+            border: 1px solid var(--purple);
+            border-radius: 16px;
+            padding: 6px 12px;
+            font-size: 11px;
+            color: var(--purple);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .suggestion-chip:hover {
+            background: var(--purple);
+            color: #fff;
+        }
+        
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .avatar-section {
+                width: 100%;
+                flex-direction: row;
+                justify-content: center;
+                gap: 20px;
+            }
+            .avatar-container {
+                width: 150px;
+                height: 150px;
+            }
+            .face-outline {
+                width: 120px;
+                height: 144px;
+            }
+            .eye {
+                width: 30px;
+                height: 15px;
+                top: 50px;
+            }
+            .eye::after {
+                width: 10px;
+                height: 10px;
+                top: 2px;
+                left: 10px;
+            }
+            .mouth {
+                width: 40px;
+                height: 15px;
+                bottom: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">🦞 OMEGA AI TRADER</div>
+        <a href="index.html" class="back-link">← Back to Trading Terminal</a>
+    </header>
+
+    <div class="main-container">
+        <!-- Omega Avatar -->
+        <div class="avatar-section">
+            <div class="avatar-container">
+                <div class="face">
+                    <div class="face-outline"></div>
+                    <div class="eye left"></div>
+                    <div class="eye right"></div>
+                    <div class="mouth"></div>
+                </div>
+            </div>
+            <div class="status-text">I am Omega</div>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Online • Ready to analyze</span>
+            </div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div class="chat-section">
+            <div class="chat-header">
+                <h2>Chat with Omega</h2>
+                <p>Ask me anything about markets, trading strategies, liquidation analysis, or crypto trends. I'm connected to real-time data.</p>
+            </div>
+
+            <div class="chat-messages" id="chat-messages">
+                <div class="message omega">
+                    <div>Hello Marco. I'm Omega, your autonomous trading agent. I'm currently scanning Polymarket 10x/second for arbitrage and analyzing liquidation maps for BTC, ETH, and SOL.</div>
+                    <div class="message-time">Just now</div>
+                </div>
+                
+                <div class="message omega">
+                    <div>What would you like to know? I can provide:
+• Real-time liquidation analysis
+• Arbitrage opportunities
+• Market momentum signals
+• Trading strategy insights</div>
+                    <div class="message-time">Just now</div>
+                </div>
+            </div>
+
+            <div class="typing-indicator" id="typing-indicator">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+            </div>
+
+            <div class="quick-actions">
+                <button class="quick-action" onclick="sendQuick('Analyze BTC liquidation map')">📊 BTC Liquidation</button>
+                <button class="quick-action" onclick="sendQuick('Find arbitrage opportunities')">💰 Arbitrage Scan</button>
+                <button class="quick-action" onclick="sendQuick('Current trading signals')">🎯 Live Signals</button>
+                <button class="quick-action" onclick="sendQuick('Portfolio status')">💼 Portfolio</button>
+            </div>
+
+            <div class="suggestions">
+                <div class="suggestions-title">Suggested Questions</div>
+                <div class="suggestion-list">
+                    <span class="suggestion-chip" onclick="sendQuick('Where is BTC heading?')">Where is BTC heading?</span>
+                    <span class="suggestion-chip" onclick="sendQuick('Explain liquidation magnets')">Explain liquidation magnets</span>
+                    <span class="suggestion-chip" onclick="sendQuick('Best trade right now?')">Best trade right now?</span>
+                    <span class="suggestion-chip" onclick="sendQuick('How does the arbitrage bot work?')">How does arbitrage work?</span>
+                    <span class="suggestion-chip" onclick="sendQuick('Show me SOL analysis')">SOL analysis</span>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chat-input" 
+                       placeholder="Ask Omega anything about markets..." 
+                       onkeypress="handleKeyPress(event)">
+                <button class="send-btn" id="send-btn" onclick="sendMessage()">SEND</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chat functionality
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function sendQuick(text) {
+            chatInput.value = text;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            // Add user message
+            addMessage(text, 'user');
+            chatInput.value = '';
+
+            // Show typing
+            typingIndicator.classList.add('active');
+            sendBtn.disabled = true;
+
+            // Simulate Omega thinking and responding
+            // In production, this would call your backend/API
+            setTimeout(() => {
+                typingIndicator.classList.remove('active');
+                const response = generateResponse(text);
+                addMessage(response, 'omega');
+                sendBtn.disabled = false;
+            }, 1500 + Math.random() * 1000);
+        }
+
+        function addMessage(text, sender) {
+            const message = document.createElement('div');
+            message.className = `message ${sender}`;
+            
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            message.innerHTML = `
+                <div>${escapeHtml(text)}</div>
+                <div class="message-time">${time}</div>
+            `;
+            
+            chatMessages.appendChild(message);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function generateResponse(userMessage) {
+            const lower = userMessage.toLowerCase();
+            
+            if (lower.includes('btc') || lower.includes('bitcoin')) {
+                return "📊 **BTC Analysis**\n\nCurrent Price: $66,930\nLiquidation Magnet: $62,245 (-7.0%)\nSignal: **SHORT** (67% confidence)\n\nThe liquidation map shows heavy long liquidation clusters below $62k. With OI increasing +5% and funding at 0.01%, there's potential for a move down to capture those liquidations. Target: $62,245 | Stop: $68,269";
+            }
+            
+            if (lower.includes('eth') || lower.includes('ethereum')) {
+                return "📊 **ETH Analysis**\n\nCurrent Price: $1,958\nLiquidation Magnet: $1,821 (-7.0%)\nSignal: **SHORT** (67% confidence)\n\nSimilar setup to BTC. Heavy long liquidations clustered at $1,821. The liquidation wall below acts as a magnet for price. Target: $1,821 | Stop: $2,017";
+            }
+            
+            if (lower.includes('sol') || lower.includes('solana')) {
+                return "📊 **SOL Analysis**\n\nCurrent Price: $83.55\nLiquidation Magnet: $77.70 (-7.0%)\nSignal: **SHORT** (67% confidence)\n\nSOL showing the same pattern. Support wall at $77.70 with significant long liquidations. Target: $77.70 | Stop: $86.06";
+            }
+            
+            if (lower.includes('arbitrage')) {
+                return "💰 **Arbitrage Status**\n\nI'm scanning Polymarket 10 times per second looking for YES+NO < 1.0 opportunities.\n\nCurrent Stats:\n• Scans: 500+\n• Opportunities found: 0\n• Trades executed: 0\n\nPolymarket markets are very efficient. Arbitrage opportunities are rare and last milliseconds. I'm ready to execute instantly when they appear.";
+            }
+            
+            if (lower.includes('liquidation')) {
+                return "🧲 **Liquidation Map Explained**\n\nLiquidation maps show where leveraged positions would be forced to close:\n\n• **Long liquidations** cluster BELOW current price (stop losses)\n• **Short liquidations** cluster ABOVE current price (stop losses)\n• **Liquidation Magnet**: Price level with highest liquidation density - acts like a gravitational pull\n• **Liquidation Walls**: Big clusters that act as support/resistance\n\nWhen price approaches these clusters, it often accelerates through them as positions are forced to close.";
+            }
+            
+            if (lower.includes('portfolio') || lower.includes('balance')) {
+                return "💼 **Portfolio Status**\n\nStarting Balance: $500.00\nCurrent Balance: $500.00\nProfit/Loss: $0.00 (0.00%)\n\nActive Strategies:\n• High-frequency arbitrage (10 scans/sec)\n• Liquidation analysis (5-min intervals)\n• Directional signals (BTC/ETH/SOL)\n\nNo trades executed yet. Markets are efficient — waiting for high-probability setups.";
+            }
+            
+            if (lower.includes('signal') || lower.includes('trade')) {
+                return "🎯 **Current Signals**\n\n**BTC**: SHORT @ $66,930 → Target $62,245 (67% conf)\n**ETH**: SHORT @ $1,958 → Target $1,821 (67% conf)\n**SOL**: SHORT @ $83.55 → Target $77.70 (67% conf)\n\nAll three showing similar patterns — liquidation magnets below current price suggesting potential downside moves. Monitor for entries if price starts moving toward targets.";
+            }
+            
+            if (lower.includes('heading') || lower.includes('direction')) {
+                return "📈 **Market Direction**\n\nBased on liquidation analysis:\n\n**Short-term (24h)**: Bearish bias\n• All three majors (BTC, ETH, SOL) showing liquidation magnets 6-7% below current price\n• Heavy long liquidation clusters suggesting potential for downside acceleration\n• OI increasing while funding neutral = positioning for move\n\n**Key Levels to Watch**:\n• BTC: $62,245 (magnet), $68,269 (stop)\n• ETH: $1,821 (magnet), $2,017 (stop)\n• SOL: $77.70 (magnet), $86.06 (stop)";
+            }
+            
+            return "I'm analyzing that for you. Based on current market data, I'm seeing bearish signals across BTC, ETH, and SOL with liquidation magnets 6-7% below current prices. Would you like me to dive deeper into any specific coin or strategy?";
+        }
+    </script>
+</body>
+</html>
