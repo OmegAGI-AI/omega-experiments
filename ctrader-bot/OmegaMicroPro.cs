@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using cAlgo.API;
 using cAlgo.API.Indicators;
 using cAlgo.API.Internals;
@@ -90,8 +89,12 @@ namespace cAlgo.Robots
             bool momentumUp = momentum > 2 && momentum < 10;
             bool momentumDown = momentum < -2 && momentum > -10;
 
-            // Volume check (simple tick count proxy)
-            bool volumeOk = Bars.TickVolumes[i] > Bars.TickVolumes.Average(10) * 1.2;
+            // Volume check - MANUAL CALCULATION (no LINQ)
+            double volumeAvg = 0;
+            for (int j = i - 9; j <= i; j++)
+                volumeAvg += Bars.TickVolumes[j];
+            volumeAvg /= 10;
+            bool volumeOk = Bars.TickVolumes[i] > volumeAvg * 1.2;
 
             if (crossUp && momentumUp && volumeOk)
             {
@@ -145,7 +148,7 @@ namespace cAlgo.Robots
 
             // Calculate volume for 1% risk
             double riskAmount = Account.Balance * (RiskPercent / 100);
-            double volume = riskAmount / (3 * Symbol.PipValue); // 3 pip stop
+            double volume = riskAmount / (3 * Symbol.PipValue);
             volume = Symbol.NormalizeVolumeInUnits(volume, RoundingMode.Down);
 
             if (volume < Symbol.VolumeInUnitsMin)
