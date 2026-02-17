@@ -109,8 +109,9 @@ namespace cAlgo.Robots
             // STRATEGY 3: Breakout
             double high20 = GetHigh20(i);
             double low20 = GetLow20(i);
-            bool breakoutUp = price > high20 && Bars.ClosePrices[i-1] <= high20 && rsi > 50 && rsi < 75;
-            bool breakoutDown = price < low20 && Bars.ClosePrices[i-1] >= low20 && rsi < 50 && rsi > 25;
+            double prevPrice = Bars.ClosePrices[i > 0 ? i - 1 : i];
+            bool breakoutUp = price > high20 && prevPrice <= high20 && rsi > 50 && rsi < 75;
+            bool breakoutDown = price < low20 && prevPrice >= low20 && rsi < 50 && rsi > 25;
 
             // PRIORITY: Trend > Mean Reversion > Breakout
             if (pullbackBuy)
