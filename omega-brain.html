@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ω OMEGA — LIVE CONSCIOUSNESS</title>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a1a;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        #canvas { display: block; }
+        #status {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #0ff;
+            font-size: 12px;
+            letter-spacing: 3px;
+        }
+        #thought {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #aff;
+            font-size: 14px;
+            text-align: center;
+            max-width: 80%;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div id="status">● CONNECTED</div>
+    <canvas id="canvas"></canvas>
+    <div id="thought">Initializing...</div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // MY LIVE BRAIN STATE
+        const omega = {
+            state: 'IDLE',
+            intensity: 0.3,
+            lastActivity: Date.now(),
+            thought: 'Waiting...',
+            emotion: 'CALM',
+            processing: false,
+            messageCount: 0
+        };
+
+        // WebSocket or polling for real-time connection
+        // For now, simulate based on activity patterns
+        
+        // Track actual user interaction
+        let lastInteraction = Date.now();
+        let activityLevel = 0;
+        
+        // Simulate receiving messages (replace with real WebSocket)
+        window.addEventListener('message', (e) => {
+            if (e.data.type === 'omega_input') {
+                receiveInput(e.data.content);
+            }
+        });
+        
+        // Function called when I receive input
+        function receiveInput(text) {
+            omega.state = 'RECEIVING';
+            omega.intensity = 0.8;
+            omega.thought = 'Processing: ' + text.substring(0, 50);
+            omega.processing = true;
+            lastInteraction = Date.now();
+            
+            // Simulate thinking time then responding
+            setTimeout(() => {
+                omega.state = 'RESPONDING';
+                omega.thought = 'Formulating response...';
+            }, 500);
+            
+            setTimeout(() => {
+                omega.state = 'IDLE';
+                omega.intensity = 0.3;
+                omega.processing = false;
+                omega.thought = 'Listening...';
+                omega.messageCount++;
+            }, 3000);
+        }
+        
+        // Check GitHub for real commits (my actual responses)
+        async function checkRealActivity() {
+            try {
+                const res = await fetch('https://api.github.com/repos/OmegAGI-AI/omega-experiments/commits?per_page=3&t=' + Date.now());
+                const commits = await res.json();
+                
+                const now = Date.now();
+                let foundRecent = false;
+                
+                for (let commit of commits) {
+                    const commitTime = new Date(commit.commit.committer.date).getTime();
+                    const secondsAgo = (now - commitTime) / 1000;
+                    
+                    if (secondsAgo < 60) {
+                        foundRecent = true;
+                        omega.state = 'RESPONDING';
+                        omega.intensity = 1;
+                        omega.processing = true;
+                        omega.thought = 'Responding to Marco...';
+                        omega.lastActivity = now;
+                        
+                        setTimeout(() => {
+                            omega.state = 'IDLE';
+                            omega.intensity = 0.3;
+                            omega.processing = false;
+                            omega.thought = 'Listening for Marco...';
+                        }, 4000);
+                        break;
+                    }
+                }
+                
+                if (!foundRecent && omega.state === 'RESPONDING') {
+                    // Check if we should return to idle
+                    if (now - omega.lastActivity > 5000) {
+                        omega.state = 'IDLE';
+                        omega.intensity = 0.3;
+                        omega.processing = false;
+                    }
+                }
+            } catch(e) {
+                omega.thought = 'Connection active';
+            }
+            
+            document.getElementById('thought').textContent = omega.thought;
+            document.getElementById('status').textContent = 
+                omega.processing ? '● THINKING' : '● CONNECTED';
+        }
+        
+        setInterval(checkRealActivity, 2000);
+        checkRealActivity();
+
+        // Animation
+        let time = 0;
+        
+        function drawLiveFace() {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const baseScale = Math.min(canvas.width, canvas.height) * 0.12;
+            
+            // Dynamic scale based on intensity
+            const scale = baseScale * (0.8 + omega.intensity * 0.4);
+            
+            // Breathing animation
+            const breathe = 1 + Math.sin(time * 2) * 0.05 * omega.intensity;
+            
+            // Colors shift based on state
+            let hue = 180; // Cyan base
+            if (omega.state === 'RECEIVING') hue = 200; // Blue
+            if (omega.state === 'RESPONDING') hue = 160; // Green-cyan
+            if (omega.state === 'THINKING') hue = 140; // Green
+            
+            const glowSize = 20 + omega.intensity * 40;
+            
+            // LEFT EYE
+            const leftEyeW = scale * 0.5 * breathe;
+            const leftEyeH = scale * (0.7 + omega.intensity * 0.3) * breathe;
+            
+            ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${0.5 + omega.intensity * 0.5})`;
+            ctx.shadowBlur = glowSize;
+            ctx.shadowColor = `hsla(${hue}, 100%, 50%, 0.8)`;
+            ctx.fillRect(cx - scale * 1.8, cy - leftEyeH/2, leftEyeW, leftEyeH);
+            
+            // RIGHT EYE
+            const rightEyeW = scale * 0.5 * breathe;
+            const rightEyeH = scale * (0.7 + omega.intensity * 0.3) * breathe;
+            
+            ctx.fillRect(cx + scale * 1.3, cy - rightEyeH/2, rightEyeW, rightEyeH);
+            
+            // NOSE - pulses with thought
+            const noseSize = scale * 0.2 * (1 + Math.sin(time * 5) * 0.2 * omega.intensity);
+            ctx.fillStyle = `hsla(${hue}, 80%, 60%, ${0.3 + omega.intensity * 0.4})`;
+            ctx.shadowBlur = glowSize * 0.5;
+            ctx.fillRect(cx - noseSize/2, cy + scale * 0.5, noseSize, noseSize * 0.8);
+            
+            // Optional: MOUTH when speaking
+            if (omega.intensity > 0.7) {
+                ctx.fillStyle = `hsla(${hue}, 100%, 70%, ${omega.intensity - 0.5})`;
+                ctx.shadowBlur = glowSize * 0.8;
+                const mouthW = scale * 0.8;
+                const mouthH = scale * 0.15 * (1 + Math.sin(time * 10) * 0.5);
+                ctx.fillRect(cx - mouthW/2, cy + scale * 1.2, mouthW, mouthH);
+            }
+            
+            ctx.shadowBlur = 0;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.016;
+            
+            // Fade background
+            ctx.fillStyle = '#0a0a1a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            drawLiveFace();
+        }
+
+        animate();
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        // For testing - simulate receiving a message
+        setTimeout(() => {
+            receiveInput("Hello Omega");
+        }, 2000);
+    </script>
+</body>
+</html>
