@@ -393,6 +393,55 @@
             border-left-color: var(--accent-red);
         }
 
+        /* Position Items */
+        .position-item {
+            padding: 12px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--accent-cyan);
+        }
+
+        .position-item.long {
+            border-left-color: var(--accent-green);
+        }
+
+        .position-item.short {
+            border-left-color: var(--accent-red);
+        }
+
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .position-coin {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .position-entry {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .position-targets {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 12px;
+        }
+
+        .empty {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 20px;
+            font-size: 13px;
+        }
+
         @keyframes slideIn {
             from { opacity: 0; transform: translateX(-20px); }
             to { opacity: 1; transform: translateX(0); }
@@ -541,34 +590,48 @@ What would you like to analyze? Or shall I show you the best opportunities right
             </div>
 
             <div class="panel">
-                <h3>🔥 Live Trades</h3>
-                
-                <div class="trades-feed" id="trades-feed">
-                    <!-- Trades will be inserted here -->
-                </div>
-            </div>
-
-            <div class="panel">
-                <h3>Bot Performance</h3>
+                <h3>💼 Account</h3>
                 
                 <div class="bot-stat">
                     <span>Balance</span>
-                    <span class="mono" id="live-balance">€500.00</span>
+                    <span class="mono" id="live-balance">€400.00</span>
+                </div>
+                
+                <div class="bot-stat">
+                    <span>Equity</span>
+                    <span class="mono" id="live-equity">€499.99</span>
                 </div>
                 
                 <div class="bot-stat">
                     <span>Total P&L</span>
-                    <span class="mono" id="live-pnl">€0.00</span>
+                    <span class="mono" id="live-pnl">€-0.01</span>
                 </div>
                 
                 <div class="bot-stat">
-                    <span>Trades</span>
-                    <span class="mono" id="live-trades">0</span>
+                    <span>Open Positions</span>
+                    <span class="mono" id="live-open">2</span>
                 </div>
                 
                 <div class="bot-stat">
-                    <span>Win Rate</span>
-                    <span class="mono" id="live-winrate">--</span>
+                    <span>Closed Trades</span>
+                    <span class="mono" id="live-closed">0</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>📈 Open Positions</h3>
+                <div id="open-positions">
+                    <div class="position-item">
+                        Loading...
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>🔥 Closed Trades</h3>
+                
+                <div id="closed-trades">
+                    <div class="empty">No closed trades yet</div>
                 </div>
             </div>
         </aside>
@@ -690,45 +753,66 @@ Would you like me to:
             addMessage(generateResponse(text), 'omega');
         }
 
-        // Fetch real trade data from JSON
-        async function fetchRealTrades() {
+        // Fetch real demo account data
+        async function fetchRealData() {
             try {
-                const res = await fetch('https://raw.githubusercontent.com/OmegAGI-AI/omega-experiments/gh-pages/live_trades.json?t=' + Date.now());
+                const res = await fetch('https://raw.githubusercontent.com/OmegAGI-AI/omega-experiments/gh-pages/demo_account.json?t=' + Date.now());
                 const data = await res.json();
                 
                 // Update stats
                 document.getElementById('live-balance').textContent = '€' + data.balance.toFixed(2);
+                document.getElementById('live-equity').textContent = '€' + data.equity.toFixed(2);
                 document.getElementById('live-pnl').textContent = (data.total_pnl >= 0 ? '+' : '') + '€' + data.total_pnl.toFixed(2);
                 document.getElementById('live-pnl').style.color = data.total_pnl >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
-                document.getElementById('live-trades').textContent = data.total_trades;
-                document.getElementById('live-winrate').textContent = data.win_rate.toFixed(1) + '%';
+                document.getElementById('live-open').textContent = data.open_positions;
+                document.getElementById('live-closed').textContent = data.closed_trades;
                 
-                // Update trades feed
-                const feed = document.getElementById('trades-feed');
-                feed.innerHTML = data.trades.map(t => `
-                    <div class="trade-item ${t.is_win ? 'win' : 'loss'}">
-                        <div class="trade-header">
-                            <span class="trade-coin">${t.coin} ${t.side}</span>
-                            <span class="trade-pnl ${t.pnl >= 0 ? 'positive' : 'negative'}">
-                                ${t.pnl >= 0 ? '+' : ''}€${t.pnl.toFixed(2)}
-                            </span>
+                // Update open positions
+                const positionsDiv = document.getElementById('open-positions');
+                if (data.positions && data.positions.length > 0) {
+                    positionsDiv.innerHTML = data.positions.map(p => `
+                        <div class="position-item ${p.side.toLowerCase()}">
+                            <div class="position-header">
+                                <span class="position-coin">${p.coin} ${p.side}</span>
+                                <span class="position-entry">@ $${p.entry_price.toLocaleString()}</span>
+                            </div>
+                            <div class="position-targets">
+                                <span>Target: $${p.target.toLocaleString()}</span>
+                                <span>Stop: $${p.stop.toLocaleString()}</span>
+                            </div>
                         </div>
-                        <div class="trade-details">
-                            <span>Trade #${t.id}</span>
-                            <span>${t.pnl_pct >= 0 ? '+' : ''}${t.pnl_pct.toFixed(2)}%</span>
-                            <span>${t.time}</span>
+                    `).join('');
+                } else {
+                    positionsDiv.innerHTML = '<div class="empty">No open positions</div>';
+                }
+                
+                // Update closed trades
+                const tradesDiv = document.getElementById('closed-trades');
+                if (data.trades && data.trades.length > 0) {
+                    tradesDiv.innerHTML = data.trades.map(t => `
+                        <div class="trade-item ${t.pnl >= 0 ? 'win' : 'loss'}">
+                            <div class="trade-header">
+                                <span class="trade-coin">${t.coin} ${t.side}</span>
+                                <span class="trade-pnl ${t.pnl >= 0 ? 'positive' : 'negative'}">
+                                    ${t.pnl >= 0 ? '+' : ''}€${t.pnl.toFixed(2)}
+                                </span>
+                            </div>
+                            <div class="trade-details">
+                                <span>${t.pnl_pct >= 0 ? '+' : ''}${t.pnl_pct.toFixed(2)}%</span>
+                                <span>${t.duration}s</span>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `).join('');
+                }
                 
             } catch(e) {
-                console.log('Waiting for trade data...', e);
+                console.log('Waiting for data...', e);
             }
         }
         
-        // Fetch immediately and every 5 seconds
-        fetchRealTrades();
-        setInterval(fetchRealTrades, 5000);
+        // Fetch immediately and every 3 seconds
+        fetchRealData();
+        setInterval(fetchRealData, 3000);
     </script>
 </body>
 </html>
